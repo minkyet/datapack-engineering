@@ -56,7 +56,6 @@ TBD
 `datapack-engineering` is architecturally coupled to `datapack-mcp`:
 
 - **Automatic Dependency Bootstrap**: If `datapack-engineering` is installed alone, the plugin's background lifecycle hook (`hooks.json` -> `scripts/ensure-datapack-mcp.js`) attempts to auto-install `datapack-mcp` on supported platforms (Antigravity CLI, Codex).
-- **Mandatory Hard Stop**: If `datapack-mcp` is not present and cannot be provisioned, `datapack-engineering` halts execution immediately. Because Minecraft commands lack compile-time checks, developing without the Spyglass static analyzer and MineCode syntax engine introduces silent runtime failures and is strictly prohibited.
 
 ## License
 
