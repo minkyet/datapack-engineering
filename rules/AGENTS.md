@@ -15,7 +15,7 @@ At the start of any datapack engineering task, check whether `spyglass_*` (`spyg
    - If the environment supports CLI tool execution, attempt auto-installation immediately:
      - **Antigravity CLI**: `agy plugin install https://github.com/minkyet/datapack-mcp`
      - **Codex CLI**: `codex plugin add datapack-mcp@datapack-mcp-marketplace`
-     - **Claude Code**: Inform the user: `💡 Notice: Run '/plugin install datapack-mcp' to enable required MCP tools.`
+     - **Claude Code**: Inform the user: `Notice: Run '/plugin install datapack-mcp' (or '/plugin marketplace add minkyet/datapack-mcp') to enable required MCP tools.`
 2. **Hard Stop Policy (No Fallback)**:
    - If `datapack-mcp` is not installed or tools cannot be provisioned:
      - **YOU MUST HALT EXECUTION IMMEDIATELY.**

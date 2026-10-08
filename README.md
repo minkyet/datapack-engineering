@@ -43,7 +43,20 @@ agy plugin install https://github.com/minkyet/datapack-engineering
 
 ## Usage
 
-TBD
+Once installed, the plugin and its companion `datapack-mcp` tools activate automatically whenever you develop or debug Minecraft Java Edition datapacks.
+
+### Workflow with AI Agents
+
+When working with your AI agent (Claude Code, Antigravity CLI, or Codex), prompt it with datapack tasks:
+
+- **Scaffolding a Pack**:
+  `"Create a new arena minigame datapack with namespace 'arena', following datapack-engineering standards."`
+- **Authoring Features & Contracts**:
+  `"Add a wave spawner loop in 'system/spawner' with break checks and a private calculation subroutine under 'zzz/'."`
+- **Schema & Casing Verification**:
+  `"Inspect the Interaction entity schema with mcdoc and diagnose all functions in 'data/arena/function/' for casing errors."`
+- **Project Integrity Gate**:
+  `"Run project-wide static analysis across the datapack to ensure all function paths and tags resolve with zero errors."`
 
 ### Core Agent Skill
 

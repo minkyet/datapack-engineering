@@ -1,6 +1,6 @@
 ---
 name: datapack-engineering
-description: Core verification lifecycles, project coding conventions, directory hierarchy standards, and IMP-Doc v2 function contracts for Minecraft Java Edition datapacks. Use this skill whenever enforcing datapack conventions (mandatory entrypoints load/tick/reset, zzz private subroutines, naming rules), verifying NBT/components with mcdoc, analyzing project integrity with Spyglass, or writing IMP-Doc v2 function contracts and safe tick loops.
+description: Core verification lifecycles, project coding conventions, directory hierarchy standards, and IMP-Doc v2 function contracts for Minecraft Java Edition datapacks. Use this skill whenever enforcing datapack conventions (mandatory entrypoints load/tick/reset for map packs or load/tick/uninstall for libraries, zzz private subroutines, naming rules), verifying NBT/components with mcdoc, analyzing project integrity with Spyglass, or writing IMP-Doc v2 function contracts and safe tick loops.
 ---
 
 # Minecraft Datapack Engineering (Verification, Contracts & Conventions)
@@ -68,8 +68,8 @@ flowchart LR
 - **Lifecycle Entry Points**: In `data/<namespace>/function/` root, **ONLY** designated lifecycle entrypoints are permitted:
   - `load.mcfunction`: Registered in `#minecraft:load` (`data/minecraft/tags/function/load.json`, `@internal`, `@handles function_tag minecraft:load`). Boot initialization for scores and constants. `@writes` directives are omitted to prevent header bloat.
   - `tick.mcfunction`: Registered in `#minecraft:tick` (`data/minecraft/tags/function/tick.json`, `@internal`, `@handles function_tag minecraft:tick`). 20Hz clock loop dispatcher.
-  - `reset.mcfunction`: factory reset hook for map-dependent packs (`@public`). Resets runtime scores and temporary entities to factory state, and calls `function <namespace>:load` at the end. Strictly manual developer/admin execution prior to world release; **MUST NEVER be called by ANY function in the datapack codebase** (never in runtime logic or from `load`, as resetting during gameplay or `/reload` destroys player progression).
-  - `uninstall.mcfunction`: Completely removes all created objectives, storages, bossbars, and entities to return the world to its pre-installation state (for standalone/library packs only).
+  - `reset.mcfunction`: **Mandatory Factory Reset Hook** for map-dependent packs (`@public`). Resets runtime scores and temporary entities to factory state, and calls `function <namespace>:load` at the end. Strictly manual developer/admin execution prior to world release; **MUST NEVER be called by ANY function in the datapack codebase** (never in runtime logic or from `load`, as resetting during gameplay or `/reload` destroys player progression; strictly forbidden in standalone/library packs).
+  - `uninstall.mcfunction`: Completely removes all created objectives, storages, bossbars, and entities to return the world to its pre-installation state (for standalone/library packs only; **strictly forbidden in map-dependent packs**).
 - **Mandatory Subdirectory Placement**: Apart from the designated root entrypoints, **all other functions MUST reside in a subdirectory** (no loose functions in the root directory). A 3-domain structure (`game/`, `system/`, `data/`) is recommended, but other project-appropriate layouts are fully permitted.
 - **Private Subroutine Functions (`zzz/`)**:
   - Functions dedicated to a specific parent function must be placed in a `zzz/` folder inside the parent's directory (e.g. `system/timer/zzz/tick_helper.mcfunction`).

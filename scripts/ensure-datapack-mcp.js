@@ -80,7 +80,7 @@ function bootstrap() {
   } else {
     process.stderr.write("[datapack-engineering] HARD STOP: 'datapack-mcp' is a mandatory prerequisite for 'datapack-engineering'.\n");
     process.stderr.write("[datapack-engineering] Please install it manually before proceeding:\n");
-    process.stderr.write("  - Claude Code: /plugin install datapack-mcp\n");
+    process.stderr.write("  - Claude Code: /plugin install datapack-mcp (or /plugin marketplace add minkyet/datapack-mcp)\n");
     process.stderr.write("  - Antigravity: agy plugin install https://github.com/minkyet/datapack-mcp\n");
     process.stderr.write("  - Codex: codex plugin add datapack-mcp@datapack-mcp-marketplace\n");
     process.exit(1);
