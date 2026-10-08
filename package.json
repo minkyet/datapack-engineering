@@ -1,0 +1,19 @@
+{
+  "name": "datapack-engineering",
+  "version": "1.0.0",
+  "description": "Comprehensive engineering standards, IMP-Doc v2 contracts, directory conventions, and automated verification workflow for Minecraft datapacks.",
+  "main": "scripts/ensure-datapack-mcp.js",
+  "scripts": {
+    "test": "node tests/test-bootstrap.js"
+  },
+  "keywords": [
+    "minecraft",
+    "datapack",
+    "engineering",
+    "imp-doc",
+    "agent-plugin",
+    "standards"
+  ],
+  "author": "minkyet",
+  "license": "MIT"
+}

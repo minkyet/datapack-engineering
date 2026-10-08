@@ -1,0 +1,10 @@
+{
+  "ensure-datapack-mcp": {
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "node ./scripts/ensure-datapack-mcp.js"
+      }
+    ]
+  }
+}

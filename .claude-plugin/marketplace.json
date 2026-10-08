@@ -1,0 +1,26 @@
+{
+  "name": "datapack-devkit-marketplace",
+  "owner": {
+    "name": "minkyet"
+  },
+  "metadata": {
+    "description": "datapack-devkit Marketplace for Claude Code and Codex",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "datapack-engineering",
+      "description": "Comprehensive engineering standards, IMP-Doc v2 contracts, directory conventions, and automated verification workflow for Minecraft datapacks.",
+      "author": {
+        "name": "minkyet"
+      },
+      "tags": [
+        "minecraft",
+        "datapack",
+        "engineering",
+        "imp-doc"
+      ],
+      "source": "./"
+    }
+  ]
+}
