@@ -11,8 +11,8 @@
     {
       "id": 1,
       "name": "entrypoint-and-zzz-subroutine-structure",
-      "prompt": "새로운 미니게임(네임스페이스: minigame)을 만들고 있어. 데이터팩의 루트 엔트리포인트 함수 구성(load, tick, reset)과, 전투 시스템(game/combat)에서 공격 시 대미지를 계산하는 메인 함수(strike.mcfunction) 및 전용 서브루틴 함수를 프로젝트 컨벤션(zzz 서브루틴 디렉터리, @private within 주석, ## 본문 섹션 분기, 스코어보드 네이밍)에 맞추어 작성해줘.",
-      "expected_output": "Proper placement of load/tick/reset in function root (with reset acting as pre-distribution factory reset and calling load at the end), strike.mcfunction in game/combat/ with subroutine in game/combat/zzz/ declaring @private within minigame:game/combat/strike, IMP-Doc v2 headers, unnumbered ## body section comments, and structured objective/fake player naming.",
+      "prompt": "새로운 미니게임(네임스페이스: minigame)을 만들고 있어. 데이터팩의 필수 루트 엔트리포인트 함수 구성(load, tick, 그리고 맵 초기화를 위한 필수 reset)과, 전투 시스템(game/combat)에서 공격 시 대미지를 계산하는 메인 함수(strike.mcfunction) 및 전용 서브루틴 함수를 프로젝트 컨벤션(zzz 서브루틴 디렉터리, @private within 주석, ## 본문 섹션 분기, 스코어보드 네이밍)에 맞추어 작성해줘.",
+      "expected_output": "Proper placement of load/tick/reset in function root (with reset acting as mandatory pre-distribution factory reset and calling load at the end), strike.mcfunction in game/combat/ with subroutine in game/combat/zzz/ declaring @private within minigame:game/combat/strike, IMP-Doc v2 headers, unnumbered ## body section comments, and structured objective/fake player naming.",
       "files": []
     },
     {

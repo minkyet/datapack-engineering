@@ -41,8 +41,8 @@ Every `.mcfunction` file MUST start with an IMP-Doc v2 header:
 
 ### Directory Hierarchy & Entrypoint Hygiene
 - **Root Function Directory (`data/<namespace>/function/`)**:
-  - ONLY designated lifecycle entrypoints are permitted: `load.mcfunction`, `tick.mcfunction`, `reset.mcfunction` (pre-release factory reset), and `uninstall.mcfunction` (standalone libraries only).
-  - `load` MUST NEVER call `reset`.
+  - ONLY designated lifecycle entrypoints are permitted: `load.mcfunction` (runtime init), `tick.mcfunction` (20Hz clock loop), `reset.mcfunction` (mandatory pre-distribution factory reset for map-dependent packs), and `uninstall.mcfunction` (standalone libraries only).
+  - `reset` MUST NEVER be called by ANY function in the datapack codebase (strictly manual developer execution prior to release; never invoked in runtime logic or from `load`).
   - All other logic MUST reside in categorized subdirectories (e.g. `game/`, `system/`, `data/`).
 - **Private Subroutines (`zzz/`)**:
   - Dedicated helper functions must be placed in a `zzz/` subfolder under the parent function's directory and declare `@private within <namespace>:path/to/parent`.

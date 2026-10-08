@@ -1,5 +1,5 @@
 #> <namespace>:reset
-# Pre-distribution factory reset entrypoint (run before map export/release; never in runtime)
+# Pre-distribution factory reset entrypoint (manual admin command before release; NEVER call from any code)
 #
 # @context @root
 # @public

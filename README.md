@@ -45,12 +45,11 @@ agy plugin install https://github.com/minkyet/datapack-engineering
 
 TBD
 
-### Bundled Agent Skills
+### Core Agent Skill
 
 | Skill | Description | Core Conventions & Features |
 | :--- | :--- | :--- |
-| `datapack-engineering` | Core verification lifecycle, IMP-Doc v2 contracts, and directory hierarchy standards. | Mandatory IMP-Doc v2 headers (`@context`, `@public`/`@private`), root entrypoints (`load`, `tick`, `reset`, `uninstall`), `zzz/` private subroutines, safe tick loops. |
-| `datapack-best-practices` | Battle-tested runtime patterns and complex mechanics recipes. | Scoreboard state machines (FSM), deterministic UUID entity anchors, ephemeral `.this` tags, passenger display traversal, unified cooldown pipelines, sidebar HUDs. |
+| `datapack-engineering` | Core verification lifecycle, IMP-Doc v2 contracts, and directory hierarchy standards. | Mandatory IMP-Doc v2 headers (`@context`, `@public`/`@private`), mandatory lifecycle entrypoints (`load`, `tick`, and `reset` factory reset for map packs; `uninstall` for standalone libraries), `zzz/` private subroutines, safe tick loops, and 4-Stage static verification. |
 
 ### Dependency Architecture & Bootstrap
 

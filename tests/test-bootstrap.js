@@ -30,7 +30,6 @@ const packageJsonPath = path.join(rootDir, 'package.json');
 const hooksJsonPath = path.join(rootDir, 'hooks.json');
 const rulesPath = path.join(rootDir, 'rules', 'AGENTS.md');
 const engineeringSkillPath = path.join(rootDir, 'skills', 'datapack-engineering', 'SKILL.md');
-const bestPracticesSkillPath = path.join(rootDir, 'skills', 'datapack-best-practices', 'SKILL.md');
 
 let pluginJson, claudePlugin, claudeMarketplace, packageJson, hooksJson;
 
@@ -79,7 +78,6 @@ assert(marketplacePlugin && marketplacePlugin.name === 'datapack-engineering', "
 
 // 3. Core Skills Presence & Mandatory Dependency
 assert(fs.existsSync(engineeringSkillPath), 'skills/datapack-engineering/SKILL.md exists');
-assert(fs.existsSync(bestPracticesSkillPath), 'skills/datapack-best-practices/SKILL.md exists');
 
 if (fs.existsSync(engineeringSkillPath)) {
   const content = fs.readFileSync(engineeringSkillPath, 'utf8');

@@ -53,9 +53,9 @@ In the root function directory (`data/<namespace>/function/`), **ONLY** the desi
 
 | Entrypoint File | Path | Allowed Pack Type | Scope & Description |
 |---|---|---|---|
-| `load.mcfunction` | `data/<namespace>/function/load.mcfunction` | Common (All packs) | **Initialization Hook** (`@internal`, `@handles function_tag minecraft:load`). Registered in `data/minecraft/tags/function/load.json`. Sets up objectives, constants, and boot initialization. `@writes` directives are omitted to prevent header bloat. **Must NEVER call `reset.mcfunction`** (calling reset on boot or `/reload` would wipe player save/quest progression). |
-| `tick.mcfunction` | `data/<namespace>/function/tick.mcfunction` | Common (All packs) | **Tick Dispatcher** (`@internal`, `@handles function_tag minecraft:tick`). Registered in `data/minecraft/tags/function/tick.json`. Dispatches main clocks, timers, and active game loops. |
-| `reset.mcfunction` | `data/<namespace>/function/reset.mcfunction` | Map-dependent / Game packs | **Pre-distribution Factory Reset Hook** (`@public`). Resets the map/world to its pristine initial state before packaging and release. Strictly executed during development or prior to world export, and **never during normal gameplay runtime**. Resets runtime scores, clears temporary entities, and calls `function <namespace>:load` at the end to guarantee a completely initialized, boot-ready factory state for the released save. |
+| `load.mcfunction` | `data/<namespace>/function/load.mcfunction` | Mandatory (All packs) | **Initialization Hook** (`@internal`, `@handles function_tag minecraft:load`). Registered in `data/minecraft/tags/function/load.json`. Sets up objectives, constants, and boot initialization. `@writes` directives are omitted to prevent header bloat. |
+| `tick.mcfunction` | `data/<namespace>/function/tick.mcfunction` | Mandatory (All packs) | **Tick Dispatcher** (`@internal`, `@handles function_tag minecraft:tick`). Registered in `data/minecraft/tags/function/tick.json`. Dispatches main clocks, timers, and active game loops. |
+| `reset.mcfunction` | `data/<namespace>/function/reset.mcfunction` | **Mandatory (Map-dependent / Game packs)** | **Pre-distribution Factory Reset Hook** (`@public`). Resets the map/world to pristine initial factory state before packaging and release. **Strictly mandatory for map-dependent packs**; resetting runtime scores, clearing temporary entities, and invoking `function <namespace>:load` at the end ensures players start fresh without corrupted state or softlocks. **MUST NEVER be called by ANY function in the datapack codebase (including `load` or runtime ticks/triggers); strictly executed manually by admin/developer prior to world export.** |
 | `uninstall.mcfunction` | `data/<namespace>/function/uninstall.mcfunction` | Standalone / Library packs only | **Complete Teardown Hook** (`@public`). Complete uninstallation entrypoint dedicated to standalone libraries and utility datapacks. Completely purges all created objectives, storages, bossbars, and entities to return the world to its pre-installation state. **Strictly forbidden in map-dependent datapacks (must never be included).** |
 
 > **Root Cleanliness Rule**:  
@@ -136,3 +136,11 @@ Format entity tags with dot-separated hierarchical namespaces:
 Structure custom item data under a namespaced compound:
 - `[custom_data={<namespace>:{<nbt>}}]`
   - Example: `give @p diamond_sword[custom_data={<namespace>:{weapon_id:"frost_blade",power:10}}]`
+
+---
+
+## 6. Target Selector Conventions & Performance
+
+- **Always Specify `type=`**: Unscoped `@e[...]` selectors scan every entity loaded across all ticking dimensions. Always supply `type=<entity_type>` first (e.g. `@e[type=interaction, tag=<namespace>.npc]`) to let Minecraft prune the candidate search via the entity type index.
+- **Tag Narrowing**: Follow `type=` with specific namespaced tags (`tag=<namespace>.<role>`).
+- **Avoid Heavy NBT Filtering in Selectors**: Never use `nbt={...}` inside entity selectors (e.g. `@e[nbt={...}]`), as it parses and serializes full entity memory every tick. Use scoreboards or entity tags as fast filter indices instead.
