@@ -38,18 +38,48 @@ Every `.mcfunction` file MUST start with an IMP-Doc v2 header:
 # @handles function_tag <tag> (if triggered by #minecraft:load, etc.)
 # @reads score / @writes score (explicit score holders, no *)
 ```
+- **Scope Rule for `game/`**: Functions in `game/` MUST declare `@internal` (or `@private within ...` for subroutines). Declaring `@public` on `game/` functions is strictly prohibited to prevent bypassing `user/` validation.
+- **Context Rule for `user/`**: Functions in `user/` MUST declare `@context player` (or player-centric context). Calling `user/` functions from `@root` or non-player entities directly is prohibited.
 
-### Directory Hierarchy & Entrypoint Hygiene
-- **Root Function Directory (`data/<namespace>/function/`)**:
-  - ONLY designated lifecycle entrypoints are permitted: `load.mcfunction` (runtime init), `tick.mcfunction` (20Hz clock loop), `reset.mcfunction` (mandatory pre-distribution factory reset for map-dependent packs), and `uninstall.mcfunction` (standalone libraries only).
-  - `reset` MUST NEVER be called by ANY function in the datapack codebase (strictly manual developer execution prior to release; never invoked in runtime logic or from `load`).
-  - All other logic MUST reside in categorized subdirectories (e.g. `game/`, `system/`, `data/`).
-- **Private Subroutines (`zzz/`)**:
-  - Dedicated helper functions must be placed in a `zzz/` subfolder under the parent function's directory and declare `@private within <namespace>:path/to/parent`.
+### Directory Hierarchy & 5 Functional Tiers
+In `data/<namespace>/function/`, all logic resides in designated lifecycle entrypoints and functional tiers:
+
+1. **Lifecycle Entrypoints (Root Function Directory)**:
+   - ONLY designated lifecycle entrypoints are permitted directly in `data/<namespace>/function/`:
+     - `load.mcfunction`: Runtime boot initialization (`@internal`, registered in `#minecraft:load`).
+     - `tick.mcfunction`: 20Hz clock loop dispatcher (`@internal`, registered in `#minecraft:tick`).
+     - `uninstall.mcfunction`: **Mandatory Teardown Hook for ALL datapacks** (`@public`). Completely purges created objectives, storages, bossbars, entities tagged `<namespace>`, and scheduled tasks (`schedule clear`).
+     - `reset.mcfunction`: **Mandatory Pre-distribution Factory Reset for map-dependent packs** (`@public`, optional for standalone libraries). Executes composite teardown and setup in order:
+       1. `function <namespace>:uninstall` (Teardown)
+       2. `function <namespace>:load` (Bootstrap)
+       3. Initial map seeding (spawning permanent map NPCs, resetting player coordinates/gamemodes).
+     - `reset` and `uninstall` MUST NEVER be called during active gameplay or runtime ticks/triggers (strictly manual developer execution prior to release or complete teardown).
+2. **5 Core Functional Tiers**:
+   - `user/`: Controller / Gatekeeper. Player input reception (`/trigger`, NPC interaction bridge). Performs **Request Qualification** (distance, cooldown, cost, permissions). Bails out early with `return fail` on mismatch.
+   - `game/`: Model / Domain Logic. Executes core game state changes and mechanics. Marked `@internal` only.
+   - `visual/`: View / Render. Pure presentation and side-effects (`playsound`, `particle`, displays, `tellraw`). Never mutates game state scores or storages.
+   - `system/`: Infrastructure. Schedulers, garbage collection, and sensor listeners (e.g. detecting interaction entities and bridging to `user/` via `execute on target`).
+   - `system/util/`: Library. Stateless, reusable pure functions (RNG, vector arithmetic, raycasting).
+   - *(Note: Projects may introduce additional top-level domain folders such as `event/` or `custom/` when demanded by specific architecture requirements.)*
+3. **Private Subroutines (`zzz/`)**:
+   - Helper functions dedicated to a parent function must reside in a flat `zzz/` folder inside the parent's directory and declare `@private within <namespace>:path/to/parent`.
+   - **No Subroutine Nesting**: `zzz/zzz/` chaining is strictly forbidden; all subroutines in a module share the same flat `zzz/` directory.
+   - **No Subroutines in `user/`**: Functions in `user/` MUST NOT contain `zzz/` subroutines. Complex logic belongs in `game/` or `system/util/`.
+
+### Validation Boundaries & Asynchronous Safety
+- **Request Qualification (`user/`)**:
+  - `user/` is the gatekeeper for player actions. It checks if the player is alive, within distance, off cooldown, and possesses required currency. Unmet conditions trigger `return fail` and feedback via `visual/`.
+- **Domain State Guards (`game/`)**:
+  - When invoked downstream of `user/`, `game/` omits redundant input checks (No Redundant Input Validation).
+  - When invoked asynchronously via `schedule` or `tick`, `game/` MUST include domain state guards (`execute unless entity @s run return fail`, game phase matches) to guard against world drift during scheduling delays.
 
 ### Safe Tick Loop Pattern
 - Schedulers and tick loops MUST check `#stop_requested_<name>` at the very top. If set, clean up and terminate with `return run`.
 - Reschedule at the bottom via `schedule function <function_name> 1t append`.
+
+### Minecraft 1.21.5+ Text Component Formatting
+- **Quote-Wrapping Deprecation**: Starting in Minecraft 1.21.5+, wrapping JSON text components in string quotes (e.g. `'{"text":"hello"}'`) outputs the raw JSON literal string in chat.
+- **Modern Syntax**: Always supply unquoted JSON objects (e.g. `tellraw @a {"text":"hello","color":"green"}`) or raw string literals (e.g. `tellraw @a "hello"`) in commands and examples.
 
 ---
 
@@ -60,7 +90,7 @@ Because Minecraft commands lack compile-time checks, every implementation or mod
 1. **Stage 1 (Pre-Implementation Check)**:
    - Query authoritative entity/component schemas via `spyglass_get_mcdoc_symbol` and Brigadier syntax via `get_command_usage`.
 2. **Stage 2 (Clean Implementation)**:
-   - Implement functions strictly adhering to IMP-Doc v2 contracts, `zzz/` isolation, and 4-space continuation line indentation.
+   - Implement functions strictly adhering to IMP-Doc v2 contracts, 5-tier architecture, `zzz/` isolation, and 4-space continuation line indentation.
 3. **Stage 3 (Single-File Diagnostics)**:
    - Run `spyglass_diagnose_file` immediately on every created or modified `.mcfunction` and `.json` file. Fix all reported mcdoc field name casing errors and SNBT syntax issues.
 4. **Stage 4 (Project Integrity Gate)**:

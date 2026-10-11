@@ -1,6 +1,6 @@
 # datapack-engineering
 
-datapack-engineering is an AI agent development plugin and engineering standards suite for Minecraft Java Edition datapacks, defining strict verification lifecycles, IMP-Doc v2 function contracts, and directory hierarchy conventions.
+datapack-engineering is an AI agent development plugin and engineering standards suite for Minecraft Java Edition datapacks, defining strict verification lifecycles, 5-tier directory architectures, validation boundaries, IMP-Doc v2 function contracts, and lifecycle entrypoint standards.
 
 ## Prerequisites
 
@@ -52,7 +52,7 @@ When working with your AI agent (Claude Code, Antigravity CLI, or Codex), prompt
 - **Scaffolding a Pack**:
   `"Create a new arena minigame datapack with namespace 'arena', following datapack-engineering standards."`
 - **Authoring Features & Contracts**:
-  `"Add a wave spawner loop in 'system/spawner' with break checks and a private calculation subroutine under 'zzz/'."`
+  `"Add a wave spawner loop in 'system/spawner' with break checks and a private calculation subroutine under flat 'zzz/'."`
 - **Schema & Casing Verification**:
   `"Inspect the Interaction entity schema with mcdoc and diagnose all functions in 'data/arena/function/' for casing errors."`
 - **Project Integrity Gate**:
@@ -62,7 +62,7 @@ When working with your AI agent (Claude Code, Antigravity CLI, or Codex), prompt
 
 | Skill | Description | Core Conventions & Features |
 | :--- | :--- | :--- |
-| `datapack-engineering` | Core verification lifecycle, IMP-Doc v2 contracts, and directory hierarchy standards. | Mandatory IMP-Doc v2 headers (`@context`, `@public`/`@private`), mandatory lifecycle entrypoints (`load`, `tick`, and `reset` factory reset for map packs; `uninstall` for standalone libraries), `zzz/` private subroutines, safe tick loops, and 4-Stage static verification. |
+| `datapack-engineering` | Core verification lifecycle, 5-tier architecture, IMP-Doc v2 contracts, and directory hierarchy standards. | • **5 Functional Tiers**: `user/` (gatekeeper, `@context player`), `game/` (domain logic, `@internal`), `visual/` (render view), `system/` (infrastructure & sensors), `system/util/` (stateless math/RNG).<br>• **Validation Boundaries**: Request qualification in `user/`, domain state guards in `game/` with zero redundant input checks.<br>• **Composite Lifecycle**: Universal `uninstall.mcfunction` teardown, composite `reset.mcfunction` (`uninstall` $\rightarrow$ `load` $\rightarrow$ map seeding).<br>• **Subroutine Cleanliness**: Flat `zzz/` helper directories (no nesting; forbidden in `user/`).<br>• **Minecraft 1.21.5+ Syntax**: Unquoted JSON text components.<br>• **Static Verification**: Mandatory 4-Stage pipeline via `datapack-mcp`. |
 
 ### Dependency Architecture & Bootstrap
 

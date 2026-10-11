@@ -30,6 +30,10 @@ const packageJsonPath = path.join(rootDir, 'package.json');
 const hooksJsonPath = path.join(rootDir, 'hooks.json');
 const rulesPath = path.join(rootDir, 'rules', 'AGENTS.md');
 const engineeringSkillPath = path.join(rootDir, 'skills', 'datapack-engineering', 'SKILL.md');
+const conventionsPath = path.join(rootDir, 'skills', 'datapack-engineering', 'references', 'code-conventions.md');
+const impDocPath = path.join(rootDir, 'skills', 'datapack-engineering', 'references', 'imp-doc-v2.md');
+const uninstallTemplatePath = path.join(rootDir, 'skills', 'datapack-engineering', 'assets', 'templates', 'entrypoints', 'uninstall.mcfunction');
+const resetTemplatePath = path.join(rootDir, 'skills', 'datapack-engineering', 'assets', 'templates', 'entrypoints', 'reset.mcfunction');
 
 let pluginJson, claudePlugin, claudeMarketplace, packageJson, hooksJson;
 
@@ -85,18 +89,40 @@ if (fs.existsSync(engineeringSkillPath)) {
   assert(content.includes('datapack-mcp'), 'datapack-engineering SKILL.md references companion datapack-mcp');
   assert(content.includes('Mandatory Dependency Gate'), 'datapack-engineering SKILL.md enforces Mandatory Dependency Gate');
   assert(!content.includes('Environment Fallback Protocol'), 'datapack-engineering SKILL.md has fallback protocol removed');
+  assert(content.includes('5-Tier Directory Hierarchy') || content.includes('5 Core Functional Tiers'), 'datapack-engineering SKILL.md enforces 5 functional tiers');
+  assert(content.includes('uninstall.mcfunction'), 'datapack-engineering SKILL.md specifies uninstall.mcfunction as universal teardown');
 }
 
-// 4. Universal Agent Rules (Hard Stop Enforcement)
+// 4. Universal Agent Rules (5 Tiers, Validation Boundaries, Composite Lifecycle)
 assert(fs.existsSync(rulesPath), 'rules/AGENTS.md exists');
 if (fs.existsSync(rulesPath)) {
   const content = fs.readFileSync(rulesPath, 'utf8');
   assert(content.includes('datapack-mcp'), 'rules/AGENTS.md references datapack-mcp');
   assert(content.includes('Hard Stop Policy (No Fallback)'), 'rules/AGENTS.md specifies Hard Stop Policy (No Fallback)');
   assert(!content.includes('Fallback Mode'), 'rules/AGENTS.md has Fallback Mode removed');
+  assert(content.includes('user/') && content.includes('game/') && content.includes('visual/'), 'rules/AGENTS.md defines functional tiers');
+  assert(content.includes('@context player'), 'rules/AGENTS.md enforces @context player for user/ layer');
+  assert(content.includes('@internal'), 'rules/AGENTS.md enforces @internal for game/ layer');
+  assert(content.includes('uninstall.mcfunction'), 'rules/AGENTS.md enforces universal uninstall.mcfunction teardown');
+  assert(content.includes('1.21.5+'), 'rules/AGENTS.md documents 1.21.5+ unquoted text component warning');
 }
 
-// 5. Hooks & Bootstrap Script Execution
+// 5. Template Assets Correctness
+assert(fs.existsSync(uninstallTemplatePath), 'uninstall.mcfunction template exists');
+if (fs.existsSync(uninstallTemplatePath)) {
+  const content = fs.readFileSync(uninstallTemplatePath, 'utf8');
+  assert(content.includes('schedule clear'), 'uninstall.mcfunction template clears scheduled tasks');
+  assert(content.includes('kill @e[tag=<namespace>]'), 'uninstall.mcfunction template removes tagged entities');
+}
+
+assert(fs.existsSync(resetTemplatePath), 'reset.mcfunction template exists');
+if (fs.existsSync(resetTemplatePath)) {
+  const content = fs.readFileSync(resetTemplatePath, 'utf8');
+  assert(content.includes('function <namespace>:uninstall'), 'reset.mcfunction calls uninstall as step 1');
+  assert(content.includes('function <namespace>:load'), 'reset.mcfunction calls load as step 2');
+}
+
+// 6. Hooks & Bootstrap Script Execution
 assert(hooksJson && hooksJson['ensure-datapack-mcp'] && hooksJson['ensure-datapack-mcp'].PreInvocation, 'hooks.json defines PreInvocation hook for ensure-datapack-mcp');
 
 try {

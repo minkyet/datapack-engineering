@@ -1,23 +1,19 @@
 #> <namespace>:reset
-# Pre-distribution factory reset entrypoint (manual admin command before release; NEVER call from any code)
+# Pre-distribution factory reset entrypoint (Mandatory for map packs; NEVER call from gameplay logic)
 #
 # @context @root
 # @public
-# @writes score #stop_requested_all <namespace>
-# @writes score #state <namespace>
 
-## Stop Active Schedulers & Loops
-scoreboard players set #stop_requested_all <namespace> 1
+## 1. Execute Complete Teardown
+function <namespace>:uninstall
 
-## Clear Match & Temporary Entities
-kill @e[type=interaction, tag=<namespace>.temp]
-kill @e[type=marker, tag=<namespace>.temp]
-
-## Reset Runtime Scores to Initial State
-scoreboard players reset * <namespace>.temp
-scoreboard players set #state <namespace> 0
-
-## Re-run Load to Prepare Factory State
+## 2. Re-bootstrap System Objectives & Constants
 function <namespace>:load
 
-say [<namespace>] Reset to pristine initial playable state.
+## 3. Seed Initial Map State & Permanent Entities
+# Summon permanent NPCs, interaction bridges, and display entities
+# function <namespace>:system/setup/spawn_npcs
+gamemode adventure @a
+spawnpoint @a ~ ~ ~
+
+tellraw @a {"text":"[<namespace>] Reset to pristine initial playable state.","color":"green"}

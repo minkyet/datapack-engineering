@@ -35,8 +35,8 @@ Visibility controls which functions may execute this function:
 
 | Directive | Scope & Usage |
 |---|---|
-| `@public` | Callable from anywhere (including external datapacks or player triggers). Used for public APIs and `reset.mcfunction`. |
-| `@internal` | Callable anywhere within the **same** datapack namespace. Standard for normal domain functions (`load.mcfunction`, `tick.mcfunction`). |
+| `@public` | Callable from anywhere (including external datapacks, player `/trigger`, or chat). Used for public APIs, `user/` gatekeepers, `uninstall.mcfunction`, and `reset.mcfunction`. |
+| `@internal` | Callable anywhere within the **same** datapack namespace. Standard for `load.mcfunction`, `tick.mcfunction`, `system/` infrastructure, and **ALL functions in `game/`**.<br>*(Constraint: Functions in `game/` MUST NEVER declare `@public`).* |
 | `@private within <parent_id>` | **Subroutine Isolation**: Callable **only** from the specified parent function. Mandatory for all helper functions in `zzz/` subdirectories. |
 
 ---
@@ -45,9 +45,9 @@ Visibility controls which functions may execute this function:
 
 Specifies the expected entity/position execution context (`execute as ... at ...`):
 
+- `@context player`: Executed as a player entity. **Mandatory for all functions in `user/`** (or player-centric descriptions such as `@context player at npc`).
 - `@context @root`: Server root execution context (default command execution, dimension root). Standard for `load.mcfunction` and global clock tickers.
-- `@context player`: Executed as a player entity.
-- `@context <description>`: Specific custom context (e.g. `@context target enemy entity`, `@context caster player at feet`).
+- `@context <description>`: Specific custom context (e.g. `@context target enemy entity`, `@context bomb marker entity`).
 
 ---
 
@@ -75,7 +75,28 @@ Declare data read, written, or passed into the function. Analyzers and maintaine
 
 ## 6. Practical Mcfunction Header Examples
 
-### Example A: Public Reset Entrypoint (Map Factory Reset)
+### Example A: User Layer Request Gatekeeper
+```mcfunction
+#> arena:user/shop/buy_sword
+# Validates player purchase request and delegates to game layer
+#
+# @context player
+# @public
+# @reads score @s arena.gold
+# @reads score ##sword_price arena.const
+```
+
+### Example B: Game Layer Internal Domain Action
+```mcfunction
+#> arena:game/shop/execute_buy_sword
+# Executes sword transaction (currency deduction and item grant)
+#
+# @context player
+# @internal
+# @writes score @s arena.gold
+```
+
+### Example C: Public Reset Entrypoint (Composite Factory Reset)
 ```mcfunction
 #> arena:reset
 # Restores arena world and all scores to pristine pre-release factory state
@@ -84,7 +105,7 @@ Declare data read, written, or passed into the function. Analyzers and maintaine
 # @public
 ```
 
-### Example B: Private Subroutine (`zzz/`)
+### Example D: Private Subroutine (`zzz/`)
 ```mcfunction
 #> arena:game/combat/zzz/calc_damage
 # Computes defense scaling and applies final damage score

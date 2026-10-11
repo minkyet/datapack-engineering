@@ -1,11 +1,11 @@
 ---
 name: datapack-engineering
-description: Core verification lifecycles, project coding conventions, directory hierarchy standards, and IMP-Doc v2 function contracts for Minecraft Java Edition datapacks. Use this skill whenever enforcing datapack conventions (mandatory entrypoints load/tick/reset for map packs or load/tick/uninstall for libraries, zzz private subroutines, naming rules), verifying NBT/components with mcdoc, analyzing project integrity with Spyglass, or writing IMP-Doc v2 function contracts and safe tick loops.
+description: Core verification lifecycles, 5-tier architecture, validation boundaries, composite entrypoints (load/tick/uninstall/reset), zzz private subroutines, naming rules, mcdoc verification, and IMP-Doc v2 function contracts for Minecraft Java Edition datapacks. Use this skill whenever enforcing datapack conventions, verifying NBT/components with mcdoc, analyzing project integrity with Spyglass, or writing IMP-Doc v2 function contracts and safe tick loops.
 ---
 
 # Minecraft Datapack Engineering (Verification, Contracts & Conventions)
 
-A comprehensive engineering standard defining the core verification lifecycle, directory structure, resource naming conventions, and IMP-Doc v2 function contracts for Minecraft Java Edition datapacks.
+A comprehensive engineering standard defining the core verification lifecycle, 5-tier directory structure, validation boundaries, resource naming conventions, and IMP-Doc v2 function contracts for Minecraft Java Edition datapacks.
 
 ---
 
@@ -48,32 +48,52 @@ flowchart LR
   #> <namespace>:path/to/function
   # Brief explanation (one-line summary)
   #
-  # @context @root (or target context: player, entity, etc.)
+  # @context @root (or player, entity, etc.)
   # @public / @internal / @private within <path>
   # @handles function_tag <tag> (include if triggered by function tag/advancement)
   # @reads / @writes / @input / @returns (include if applicable; explicit holders required)
   ```
+- **Context and Scope Constraints**:
+  - `user/` functions MUST declare `@context player` (or player-centric context).
+  - `game/` functions MUST declare `@internal` (or `@private within ...`). Never `@public`.
 - **Comment Hierarchy**:
   - Subsections/topic dividers in the function body use `##` without section numbers (e.g., `## Initialize variables`, never `## 1. Initialize variables`).
-  - Contextual comments use `#` minimally, only for essential context.
+  - Contextual comments use `#` minimally, only for essential context. No rigid language restriction is enforced; match the project's requirements.
 - **Line Wrapping & Indentation**:
   - Trailing backslash (`\`) for long commands.
   - Continuation lines must use **4 spaces** indentation. Hard tabs (`\t`) are strictly prohibited.
 - **Safe Tick Loop Pattern**:
   - Check `#stop_requested_*` at the very top of scheduled loops; if set, branch to cleanup and `return run`.
   - Reschedule at the bottom via `schedule function <function_name> 1t append`.
+- **Minecraft 1.21.5+ Text Component Formatting**:
+  - Quoted JSON string components (e.g. `'{"text":"hello"}'`) output raw JSON literals starting in 1.21.5+.
+  - Always use unquoted JSON objects (e.g. `tellraw @a {"text":"hello"}`) or raw string literals (`tellraw @a "hello"`).
 *(Detailed guides: [references/code-conventions.md](references/code-conventions.md) | [references/imp-doc-v2.md](references/imp-doc-v2.md))*
 
-### Rule 2: Datapack Entry Points & Directory Hierarchy (`zzz` Pattern)
+### Rule 2: Datapack Entry Points & 5-Tier Directory Hierarchy
 - **Lifecycle Entry Points**: In `data/<namespace>/function/` root, **ONLY** designated lifecycle entrypoints are permitted:
-  - `load.mcfunction`: Registered in `#minecraft:load` (`data/minecraft/tags/function/load.json`, `@internal`, `@handles function_tag minecraft:load`). Boot initialization for scores and constants. `@writes` directives are omitted to prevent header bloat.
-  - `tick.mcfunction`: Registered in `#minecraft:tick` (`data/minecraft/tags/function/tick.json`, `@internal`, `@handles function_tag minecraft:tick`). 20Hz clock loop dispatcher.
-  - `reset.mcfunction`: **Mandatory Factory Reset Hook** for map-dependent packs (`@public`). Resets runtime scores and temporary entities to factory state, and calls `function <namespace>:load` at the end. Strictly manual developer/admin execution prior to world release; **MUST NEVER be called by ANY function in the datapack codebase** (never in runtime logic or from `load`, as resetting during gameplay or `/reload` destroys player progression; strictly forbidden in standalone/library packs).
-  - `uninstall.mcfunction`: Completely removes all created objectives, storages, bossbars, and entities to return the world to its pre-installation state (for standalone/library packs only; **strictly forbidden in map-dependent packs**).
-- **Mandatory Subdirectory Placement**: Apart from the designated root entrypoints, **all other functions MUST reside in a subdirectory** (no loose functions in the root directory). A 3-domain structure (`game/`, `system/`, `data/`) is recommended, but other project-appropriate layouts are fully permitted.
+  - `load.mcfunction`: Registered in `#minecraft:load` (`@internal`). Boot environment initialization for scoreboard objectives and immutable constants (`##<value>`).
+    - **Hot-Reload Safety Contract**: Because `load` fires on server startup, world joining, and **any mid-game `/reload`**, it MUST be strictly **non-destructive and idempotent**.
+    - **Strictly Forbidden in `load`**: Resetting or mutating runtime/player scores (e.g. `set @a gold 0`, `set #state 0`, `#wave`), spawning or killing entities (`summon`, `kill`), restoring map blocks (`fill`, `setblock`), or modifying player inventories/locations (`give`, `tp`). Doing so destroys active gameplay progression on `/reload`.
+    - Initializing runtime state, spawning fixed NPCs, or restoring arenas is strictly the responsibility of `reset.mcfunction` (or one-time player join handlers via tags).
+  - `tick.mcfunction`: Registered in `#minecraft:tick` (`@internal`). 20Hz clock loop dispatcher.
+  - `uninstall.mcfunction`: **Mandatory Teardown Hook for ALL datapacks** (`@public`). Cancels active schedules (`schedule clear`), kills entities tagged `<namespace>`, removes bossbars, storages, and objectives.
+  - `reset.mcfunction`: **Mandatory Factory Reset Hook for Map-Dependent Packs** (`@public`, optional for standalone libraries). Prepares factory state before release by executing:
+    1. `function <namespace>:uninstall` (Teardown)
+    2. `function <namespace>:load` (Bootstrap)
+    3. Map seeding logic (spawning fixed NPCs, gamemodes, spawns, resetting runtime scores `#state = 0`).
+    *(Note: `reset` and `uninstall` must never be called during active gameplay or tick loops).*
+- **5 Core Functional Tiers**:
+  - `user/`: Controller / Gatekeeper. Player input handling (`/trigger`, interaction bridge). Strictly `@context player`. Performs Request Qualification (distance, cooldown, currency) and early exits via `return fail`.
+  - `game/`: Model / Domain Logic. Core game state manipulation. Strictly `@internal`. Omit redundant input checks when called from `user/`, but enforce Domain State Guards (`unless entity @s`) on async/tick invocation.
+  - `visual/`: View / Render. Pure presentation side-effects (particles, sounds, displays, `tellraw`). Never mutates game scores/storages.
+  - `system/`: Infrastructure. Schedulers, cleanup tasks, and sensor listeners (bridges interaction clicks to `user/` via `execute on target`).
+  - `system/util/`: Library. Pure, stateless utility functions (math, RNG, raycasting).
+  - *(Projects retain discretion to add custom top-level tiers like `event/` or `custom/` when needed).*
 - **Private Subroutine Functions (`zzz/`)**:
-  - Functions dedicated to a specific parent function must be placed in a `zzz/` folder inside the parent's directory (e.g. `system/timer/zzz/tick_helper.mcfunction`).
-  - Subroutines must declare `@private within <namespace>:path/to/parent` pointing explicitly to the parent function ID.
+  - Helper functions dedicated to a specific parent function must be placed in a flat `zzz/` folder inside the parent's directory (e.g. `system/timer/zzz/tick_helper.mcfunction`) with `@private within <parent_path>`.
+  - **No Subroutine Nesting**: `zzz/zzz/` chaining is forbidden.
+  - **No Subroutines in `user/`**: `user/` functions must remain lean controllers without `zzz/` folders. Complex routines belong in `game/` or `system/util/`.
 *(Detailed guide: [references/code-conventions.md](references/code-conventions.md))*
 
 ### Rule 3: Namespace & Resource Naming Standards
