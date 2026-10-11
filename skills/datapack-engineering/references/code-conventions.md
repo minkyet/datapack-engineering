@@ -170,14 +170,14 @@ Follow a strict structured naming hierarchy:
 - **Global State Register**: `<namespace>`
 - **General Dummy Objectives**: `<namespace>.<role>` (e.g. `<namespace>.mana`, `<namespace>.wave`)
 - **Display Objectives**: `<namespace>.display.<role>` (e.g. `<namespace>.display.sidebar`, `<namespace>.display.belowname`)
-- **Immutable Constants**: `<namespace>.const`
+- **Immutable Constants**: `<namespace>.const[.<role>]` (e.g. `<namespace>.const`, `<namespace>.price`)
 - **Calculation Temporary Registers**: `<namespace>.temp`
 - **Non-Dummy Criteria**: `<namespace>.<criteria>.<role>` (e.g. `<namespace>.trigger.menu`, `<namespace>.deathCount.player`)
 
 ### Scoreboard Fake Players (Score Holders)
 Fake player names must use `snake_case` and distinguish registers by prefix:
 - **General Engine Registers**: `#` prefix (e.g. `#time`, `#mob_count`, `#current_wave`)
-- **Constants**: `##` prefix (e.g. `##-1`, `##0`, `##1`, `##20`, `##60`, `##3600`). Negative number constants (e.g. `##-1`) use the minus sign as a numerical prefix and are fully valid.
+- **Constants**: `##` prefix (e.g. `##-1`, `##20`, `##3600`, `##apple`, `##max_player`). Negative number constants (e.g. `##-1`) use the minus sign as a numerical prefix and are fully valid.
 - **Display / UI Slots**: `$` prefix (e.g. `$line1`, `$line6`, `$title`)
 
 ### Entity Tags
