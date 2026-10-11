@@ -97,21 +97,11 @@ flowchart LR
 *(Detailed guide: [references/code-conventions.md](references/code-conventions.md))*
 
 ### Rule 3: Namespace & Resource Naming Standards
-- **Datapack Name & Namespace**: Follow `snake_case` (`^[a-z0-9_.-]+$`). The namespace must match the datapack name (`<namespace>` == datapack name). Only 1 custom namespace per pack (+ `minecraft`).
-- **Scoreboard Objectives**:
-  - Global state: `<namespace>`
-  - General dummy: `<namespace>.<role>`
-  - Display (sidebar, belowname): `<namespace>.display.<role>`
-  - Constants: `<namespace>.const` | Temp calculation: `<namespace>.temp`
-  - Non-dummy criteria: `<namespace>.<criteria>.<role>`
-- **Fake Players (Score Holders)**: Use `snake_case`:
-  - General registers: `#` prefix (e.g. `#time`, `#mob_count`)
-  - Constants: `##` prefix (e.g. `##20`, `##3600`)
-  - Display / HUD slots: `$` prefix (e.g. `$line1`, `$line6`)
-- **Other Resources**:
-  - Entity tags: `<namespace>.<role>[.<subrole>]`
-  - Storage: `<namespace>:<table>` | Bossbars: `<namespace>:<name>`
-  - Item custom_data: `[custom_data={<namespace>:{<nbt>}}]`
+- **Datapack & Namespace**: `snake_case` (`^[a-z0-9_.-]+$`). Exactly 1 custom namespace matching the pack name.
+- **Resource Naming Hierarchy**:
+  - **Scoreboard Objectives**: `<namespace>` (global state), `<namespace>.<role>` (general dummy), `<namespace>.const` (constants), `<namespace>.temp` (temp calc), `<namespace>.display.<role>` (display).
+  - **Fake Players**: `#<reg>` (engine registers), `##<num>` (immutable constants), `$<slot>` (UI/HUD slots).
+  - **Other Identifiers**: Entity tags `<namespace>.<role>[.<subrole>]`, Storage `<namespace>:<table>`, Bossbars `<namespace>:<name>`, Item custom_data `[custom_data={<namespace>:{...}}]`.
 *(Detailed guide: [references/code-conventions.md](references/code-conventions.md))*
 
 ---

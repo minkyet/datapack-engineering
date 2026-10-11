@@ -57,7 +57,7 @@ In the root function directory (`data/<namespace>/function/`), **ONLY** the desi
 
 | Entrypoint File | Path | Requirement | Scope & Description |
 |---|---|---|---|
-| `load.mcfunction` | `data/<namespace>/function/load.mcfunction` | Mandatory (All packs) | **Initialization Hook** (`@internal`, `@handles function_tag minecraft:load`). Registered in `data/minecraft/tags/function/load.json`. Sets up objectives, constants, and boot initialization. `@writes` directives are omitted. |
+| `load.mcfunction` | `data/<namespace>/function/load.mcfunction` | Mandatory (All packs) | **Initialization Hook** (`@internal`, `@handles function_tag minecraft:load`). Boot environment setup for objectives and immutable constants (`##<value>`).<br>**Hot-Reload Safety Contract**: Fires on startup, joining, and any mid-game `/reload`; MUST be strictly non-destructive and idempotent. Resetting runtime/player scores (`@a`, `#state`), manipulating entities (`summon`, `kill`), or altering map blocks (`fill`, `setblock`) is strictly forbidden. |
 | `tick.mcfunction` | `data/<namespace>/function/tick.mcfunction` | Mandatory (All packs) | **Tick Dispatcher** (`@internal`, `@handles function_tag minecraft:tick`). Registered in `data/minecraft/tags/function/tick.json`. Dispatches main clocks, timers, and active game loops. |
 | `uninstall.mcfunction` | `data/<namespace>/function/uninstall.mcfunction` | **Mandatory (All packs)** | **Universal Teardown Hook** (`@public`). Completely purges all created objectives, storages, bossbars, entities tagged `<namespace>`, and cancels active scheduled loops (`schedule clear`). |
 | `reset.mcfunction` | `data/<namespace>/function/reset.mcfunction` | Mandatory for Map Packs | **Pre-distribution Factory Reset Hook** (`@public`, optional for standalone). Resets the world to pristine factory state before export. Sequentially executes:<br>1. `function <namespace>:uninstall`<br>2. `function <namespace>:load`<br>3. Initial map seeding (permanent NPCs, gamemodes, spawns).<br>**MUST NEVER be called during active gameplay or tick loops.** |
@@ -144,7 +144,7 @@ scoreboard players reset @s <namespace>.trigger.action
 execute at @e[type=marker, tag=<namespace>.target, limit=1] unless entity @s[distance=..5] run \
     return run function <namespace>:visual/msg/too_far
 execute if score @s <namespace>.cd_action matches 1.. run \
-    return run function <namespace>:visual/fail/invalid
+    return fail
 
 ## Delegate to Domain Logic (or View for UI)
 # Forward validated request to game/ (or directly to visual/ for pure UI/info)
