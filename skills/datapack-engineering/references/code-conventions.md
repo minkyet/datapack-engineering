@@ -82,34 +82,45 @@ Apart from designated root entrypoints, all functions belong to structured domai
 
 *(Note: Datapack authors retain discretion to add project-specific top-level folders, such as `event/` or `custom/`, when required by domain architecture).*
 
-### Validation Boundaries & Sensor Bridge Pattern
+### Validation Boundaries & The Subject-of-Validation Principle
+
+To prevent leaky abstractions and maintain clean domain encapsulation, validation is split into two distinct tiers based on the **Subject of Validation**:
+
+| Layer | Validation Category | Guiding Question (Subject) | Typical Guard Targets |
+|---|---|---|---|
+| **`user/`** | **Actor Qualification** | *"Does the calling player (@s) qualify to execute this action?"* | • Distance to NPC/station (`distance=..3`)<br>• Player debounce cooldowns<br>• Permission/driver role tags (`tag=driver`)<br>• Player alive & not stunned |
+| **`game/`** | **Domain Invariant Guard** | *"Can the target object or domain state accept this operation?"* | • **Target object capacity (e.g. taxi available seats)**<br>• Shop limited stock counters<br>• Match phase or entity survival<br>• Target interaction entity validity |
+
+#### Domain Encapsulation Rule
+Functions in `game/` must be safely reusable across human players, AI agents, and system events. Therefore, **target object invariants (e.g. `taxi_seats > 0`, `shop_stock > 0`) MUST be encapsulated inside `game/`**, never in `user/`.
 
 ```text
 [Player Action / Interaction Sensor]
        │
        ▼ (execute on target -> @context player)
-1. user:shop/buy_sword (Gatekeeper / Request Qualification)
+1. user:taxi/accept_passenger (Gatekeeper / Actor Qualification)
    - [Context: @context player]
-   - Is player alive? Not stunned?
-   - Within 5 blocks of shop? Off click cooldown?
-   - Has >= 100 gold?
-   - ❌ Mismatch: return fail & invoke visual:msg/error
+   - Is player a qualified driver? (@s[tag=driver])
+   - Is player in vehicle/driver seat? (distance <= 3 blocks)
+   - Is player off input debounce cooldown?
+   - ❌ Mismatch: return fail & visual error
    -  Success: delegate to game
        │
        ▼ (internal call)
-2. game:shop/execute_buy_sword (Domain Logic)
+2. game:taxi/board_passenger (Domain Model & Invariant Guard)
    - [Context: @internal]
-   - Omit redundant cost/distance check (No Redundant Validation)
-   - Deduct 100 gold
-   - Grant sword to inventory
-   - Trigger: visual:shop/success_fx
-       │
-       ▼
-3. visual:shop/success_fx (Side-Effect View)
-   - Play levelup sound
-   - Particle blast
-   - tellraw {"text":"Purchased sword!","color":"green"}
+   - [Domain Guard]: Are taxi seats available? (seats > 0)
+   - [Domain Guard]: Is waiting passenger entity still valid?
+   - ❌ Capacity full: return run visual:msg/taxi_full
+   -  Success: atomic state mutation (seats -= 1, attach passenger)
+   - Trigger: visual:taxi/board_fx
 ```
+
+#### Anti-Pattern vs Best Practice (The Taxi Problem)
+- ❌ **Anti-Pattern (Leaking Target Invariants into `user/`)**:
+  Checking `#taxi_seats` inside `user/taxi/accept` and omitting the check in `game/taxi/board`. When an AI driver or automated quest needs to board a passenger, it cannot use `game/` safely without duplicating the seat check or risking taxi overcapacity bugs.
+-  **Best Practice (Encapsulated Invariant)**:
+  `user/` only checks if the caller is a valid driver close to the wheel. `game/` encapsulates the seat availability guard, making it bulletproof whether called by a player, an AI driver, or a scripted sequence.
 
 #### Sensor Bridge Pattern (`system/` $\rightarrow$ `user/`)
 Sensors (such as `interaction` entities) must not call `user/` as the interaction entity. Instead, `system/` detects the interaction and bridges context to the player:

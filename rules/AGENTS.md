@@ -67,10 +67,17 @@ In `data/<namespace>/function/`, all logic resides in designated lifecycle entry
    - **No Subroutines in `user/`**: Functions in `user/` MUST NOT contain `zzz/` subroutines. Complex logic belongs in `game/` or `system/util/`.
 
 ### Validation Boundaries & Asynchronous Safety
-- **Request Qualification (`user/`)**:
-  - `user/` is the gatekeeper for player actions. It checks if the player is alive, within distance, off cooldown, and possesses required currency. Unmet conditions trigger `return fail` and feedback via `visual/`.
-- **Domain State Guards (`game/`)**:
-  - When invoked downstream of `user/`, `game/` omits redundant input checks (No Redundant Input Validation).
+- **Subject-of-Validation Principle**:
+  - **Actor Qualification (`user/`)**:
+    - *Subject*: *"Does the calling player (@s) qualify to make this request?"*
+    - Checks actor constraints: distance to target (`distance=..3`), debounce/cooldowns, role/permission tags, player alive/not stunned.
+    - Unmet conditions trigger immediate early exit (`return fail`) and user feedback via `visual/`.
+  - **Domain Invariant Guards (`game/`)**:
+    - *Subject*: *"Can the target object or world state accept this domain action?"*
+    - Checks target/aggregate invariants: available seats in vehicle/taxi, remaining limited shop stock, validity of target interaction entity, match/phase state.
+    - **Domain Encapsulation Mandate**: Because `game/` domain functions must be safely reusable across human players, AI agents, quests, and system schedulers, target invariants (e.g. `taxi_seats > 0`) MUST be encapsulated inside `game/`. Checking target entity states inside `user/` is an anti-pattern.
+- **Asynchronous Safety (`game/`)**:
+  - When invoked downstream of `user/`, `game/` omits redundant input checks (distance, player cooldowns) already verified by the caller.
   - When invoked asynchronously via `schedule` or `tick`, `game/` MUST include domain state guards (`execute unless entity @s run return fail`, game phase matches) to guard against world drift during scheduling delays.
 
 ### Safe Tick Loop Pattern

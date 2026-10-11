@@ -84,8 +84,8 @@ flowchart LR
     3. Map seeding logic (spawning fixed NPCs, gamemodes, spawns, resetting runtime scores `#state = 0`).
     *(Note: `reset` and `uninstall` must never be called during active gameplay or tick loops).*
 - **5 Core Functional Tiers**:
-  - `user/`: Controller / Gatekeeper. Player input handling (`/trigger`, interaction bridge). Strictly `@context player`. Performs Request Qualification (distance, cooldown, currency) and early exits via `return fail`.
-  - `game/`: Model / Domain Logic. Core game state manipulation. Strictly `@internal`. Omit redundant input checks when called from `user/`, but enforce Domain State Guards (`unless entity @s`) on async/tick invocation.
+  - `user/`: Controller / Gatekeeper. Player input handling (`/trigger`, interaction bridge). Strictly `@context player`. Performs **Actor Qualification** (calling player's distance, cooldown, permission, wallet) and early exits via `return fail`. Target state checks are forbidden here.
+  - `game/`: Model / Domain Logic. Core game mechanics and state mutations. Strictly `@internal`. Encapsulates **Domain Invariant Guards** (target object validity, vehicle seats, shop stock, match states; safely reusable across player actions, AI agents, and events). Omits redundant actor qualification checks when called from `user/`, while enforcing state guards on async/tick calls.
   - `visual/`: View / Render. Pure presentation side-effects (particles, sounds, displays, `tellraw`). Never mutates game scores/storages.
   - `system/`: Infrastructure. Schedulers, cleanup tasks, and sensor listeners (bridges interaction clicks to `user/` via `execute on target`).
   - `system/util/`: Library. Pure, stateless utility functions (math, RNG, raycasting).
