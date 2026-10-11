@@ -79,6 +79,11 @@ In `data/<namespace>/function/`, all logic resides in designated lifecycle entry
 - **Asynchronous Safety (`game/`)**:
   - When invoked downstream of `user/`, `game/` omits redundant input checks (distance, player cooldowns) already verified by the caller.
   - When invoked asynchronously via `schedule` or `tick`, `game/` MUST include domain state guards (`execute unless entity @s run return fail`, game phase matches) to guard against world drift during scheduling delays.
+- **Standard 3-Step Protocol for `user/` Functions**:
+  All `user/` functions must structure their logic in this strict sequential order:
+  1. *Consume Input & Reset Triggers* (optional): Clear `/trigger` scores or revoke advancements. **MUST** precede any condition checks so triggers are consumed even if qualification fails, preventing infinite execution loops.
+  2. *Actor Qualification & Early Exit* (optional): Check caller distance, cooldown, and permission tags; exit early on mismatch (`return fail` or `return run function visual:...`).
+  3. *Delegate to Domain Logic*: Delegate state mutations to `game/`, or directly invoke `visual/` for stateless UI/menu requests.
 
 ### Safe Tick Loop Pattern
 - Schedulers and tick loops MUST check `#stop_requested_<name>` at the very top. If set, clean up and terminate with `return run`.

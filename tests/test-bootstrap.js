@@ -34,6 +34,7 @@ const conventionsPath = path.join(rootDir, 'skills', 'datapack-engineering', 're
 const impDocPath = path.join(rootDir, 'skills', 'datapack-engineering', 'references', 'imp-doc-v2.md');
 const uninstallTemplatePath = path.join(rootDir, 'skills', 'datapack-engineering', 'assets', 'templates', 'entrypoints', 'uninstall.mcfunction');
 const resetTemplatePath = path.join(rootDir, 'skills', 'datapack-engineering', 'assets', 'templates', 'entrypoints', 'reset.mcfunction');
+const userTemplatePath = path.join(rootDir, 'skills', 'datapack-engineering', 'assets', 'templates', 'user_function_template.mcfunction');
 
 let pluginJson, claudePlugin, claudeMarketplace, packageJson, hooksJson;
 
@@ -105,6 +106,7 @@ if (fs.existsSync(rulesPath)) {
   assert(content.includes('@internal'), 'rules/AGENTS.md enforces @internal for game/ layer');
   assert(content.includes('uninstall.mcfunction'), 'rules/AGENTS.md enforces universal uninstall.mcfunction teardown');
   assert(content.includes('1.21.5+'), 'rules/AGENTS.md documents 1.21.5+ unquoted text component warning');
+  assert(content.includes('Standard 3-Step Protocol'), 'rules/AGENTS.md defines Standard 3-Step Protocol for user/ layer');
 }
 
 // 5. Template Assets Correctness
@@ -120,6 +122,14 @@ if (fs.existsSync(resetTemplatePath)) {
   const content = fs.readFileSync(resetTemplatePath, 'utf8');
   assert(content.includes('function <namespace>:uninstall'), 'reset.mcfunction calls uninstall as step 1');
   assert(content.includes('function <namespace>:load'), 'reset.mcfunction calls load as step 2');
+}
+
+assert(fs.existsSync(userTemplatePath), 'user_function_template.mcfunction template exists');
+if (fs.existsSync(userTemplatePath)) {
+  const content = fs.readFileSync(userTemplatePath, 'utf8');
+  assert(content.includes('Consume Input & Reset Triggers'), 'user_function_template includes Consume Input step');
+  assert(content.includes('Actor Qualification & Early Exit'), 'user_function_template includes Actor Qualification step');
+  assert(content.includes('Delegate to Domain Logic'), 'user_function_template includes Delegation step');
 }
 
 // 6. Hooks & Bootstrap Script Execution

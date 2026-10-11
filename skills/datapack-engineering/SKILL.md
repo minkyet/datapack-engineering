@@ -84,7 +84,7 @@ flowchart LR
     3. Map seeding logic (spawning fixed NPCs, gamemodes, spawns, resetting runtime scores `#state = 0`).
     *(Note: `reset` and `uninstall` must never be called during active gameplay or tick loops).*
 - **5 Core Functional Tiers**:
-  - `user/`: Controller / Gatekeeper. Player input handling (`/trigger`, interaction bridge). Strictly `@context player`. Performs **Actor Qualification** (calling player's distance, cooldown, permission, wallet) and early exits via `return fail`. Target state checks are forbidden here.
+  - `user/`: Controller / Gatekeeper. Player input handling (`/trigger`, interaction bridge). Strictly `@context player`. Implements the **Standard 3-Step Protocol**: (1) Consume input/reset triggers first, (2) Actor qualification & early exit, (3) Delegate to `game/` (or `visual/` for UI). Target state checks are forbidden here.
   - `game/`: Model / Domain Logic. Core game mechanics and state mutations. Strictly `@internal`. Encapsulates **Domain Invariant Guards** (target object validity, vehicle seats, shop stock, match states; safely reusable across player actions, AI agents, and events). Omits redundant actor qualification checks when called from `user/`, while enforcing state guards on async/tick calls.
   - `visual/`: View / Render. Pure presentation side-effects (particles, sounds, displays, `tellraw`). Never mutates game scores/storages.
   - `system/`: Infrastructure. Schedulers, cleanup tasks, and sensor listeners (bridges interaction clicks to `user/` via `execute on target`).
@@ -121,6 +121,7 @@ flowchart LR
 Reusable boilerplate templates are located in `assets/templates/`:
 - `assets/templates/pack.mcmeta`: Modern pack metadata template.
 - `assets/templates/function_template.mcfunction`: IMP-Doc v2 documented function skeleton adhering to the header standard.
+- `assets/templates/user_function_template.mcfunction`: Standard 3-step controller skeleton for player input.
 - `assets/templates/entrypoints/`: Lifecycle entrypoint templates (`load.mcfunction`, `tick.mcfunction`, `reset.mcfunction`, `uninstall.mcfunction`).
 - `assets/templates/loops/safe_tick_loop.mcfunction`: Safe scheduled loop with stop flag check.
 
