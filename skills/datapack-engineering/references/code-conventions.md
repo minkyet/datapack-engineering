@@ -144,7 +144,7 @@ scoreboard players reset @s <namespace>.trigger.action
 execute at @e[type=marker, tag=<namespace>.target, limit=1] unless entity @s[distance=..5] run \
     return run function <namespace>:visual/msg/too_far
 execute if score @s <namespace>.cd_action matches 1.. run \
-    return fail
+    return run function <namespace>:visual/fail/invalid
 
 ## Delegate to Domain Logic (or View for UI)
 # Forward validated request to game/ (or directly to visual/ for pure UI/info)
