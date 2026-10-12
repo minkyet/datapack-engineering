@@ -1,11 +1,11 @@
 ---
 name: datapack-engineering
-description: Core verification lifecycles, 5-tier architecture, validation boundaries, composite entrypoints (load/tick/uninstall/reset), zzz private subroutines, naming rules, mcdoc verification, and IMP-Doc v2 function contracts for Minecraft Java Edition datapacks. Use this skill whenever enforcing datapack conventions, verifying NBT/components with mcdoc, analyzing project integrity with Spyglass, or writing IMP-Doc v2 function contracts and safe tick loops.
+description: Core verification lifecycles, 4-tier architecture, validation boundaries, composite entrypoints (load/tick/uninstall/reset), zzz private subroutines, naming rules, mcdoc verification, and IMP-Doc v2 function contracts for Minecraft Java Edition datapacks. Use this skill whenever enforcing datapack conventions, verifying NBT/components with mcdoc, analyzing project integrity with Spyglass, or writing IMP-Doc v2 function contracts and safe tick loops.
 ---
 
 # Minecraft Datapack Engineering (Verification, Contracts & Conventions)
 
-A comprehensive engineering standard defining the core verification lifecycle, 5-tier directory structure, validation boundaries, resource naming conventions, and IMP-Doc v2 function contracts for Minecraft Java Edition datapacks.
+A comprehensive engineering standard defining the core verification lifecycle, 4-tier directory structure, validation boundaries, resource naming conventions, and IMP-Doc v2 function contracts for Minecraft Java Edition datapacks.
 
 ---
 
@@ -70,7 +70,7 @@ flowchart LR
   - Always use unquoted JSON objects (e.g. `tellraw @a {"text":"hello"}`) or raw string literals (`tellraw @a "hello"`).
 *(Detailed guides: [references/code-conventions.md](references/code-conventions.md) | [references/imp-doc-v2.md](references/imp-doc-v2.md))*
 
-### Rule 2: Datapack Entry Points & 5-Tier Directory Hierarchy
+### Rule 2: Datapack Entry Points & 4-Tier Directory Hierarchy
 - **Lifecycle Entry Points**: In `data/<namespace>/function/` root, **ONLY** designated lifecycle entrypoints are permitted:
   - `load.mcfunction`: Registered in `#minecraft:load` (`@internal`). Boot environment initialization for scoreboard objectives and immutable constants (`##<value>`).
     - **Hot-Reload Safety Contract**: Because `load` fires on server startup, world joining, and **any mid-game `/reload`**, it MUST be strictly **non-destructive and idempotent**.
@@ -83,17 +83,16 @@ flowchart LR
     2. `function <namespace>:load` (Bootstrap)
     3. Map seeding logic (spawning fixed NPCs, gamemodes, spawns, resetting runtime scores `#state = 0`).
     *(Note: `reset` and `uninstall` must never be called during active gameplay or tick loops).*
-- **5 Core Functional Tiers**:
+- **4 Core Functional Tiers**:
   - `user/`: Controller / Gatekeeper. Player input handling (`/trigger`, interaction bridge). Strictly `@context player`. Implements the **Standard 3-Step Protocol**: (1) Consume input/reset triggers first, (2) Actor qualification & early exit, (3) Delegate to `game/` (or `visual/` for UI). Target state checks are forbidden here.
   - `game/`: Model / Domain Logic. Core game mechanics and state mutations. Strictly `@internal`. Encapsulates **Domain Invariant Guards** (target object validity, vehicle seats, shop stock, match states; safely reusable across player actions, AI agents, and events). Omits redundant actor qualification checks when called from `user/`, while enforcing state guards on async/tick calls.
   - `visual/`: View / Render. Pure presentation side-effects (particles, sounds, displays, `tellraw`). Never mutates game scores/storages.
   - `system/`: Infrastructure. Schedulers, cleanup tasks, and sensor listeners (bridges interaction clicks to `user/` via `execute on target`).
-  - `system/util/`: Library. Pure, stateless utility functions (math, RNG, raycasting).
   - *(Projects retain discretion to add custom top-level tiers like `event/` or `custom/` when needed).*
 - **Private Subroutine Functions (`zzz/`)**:
   - Helper functions dedicated to a specific parent function must be placed in a flat `zzz/` folder inside the parent's directory (e.g. `system/timer/zzz/tick_helper.mcfunction`) with `@private within <parent_path>`.
   - **No Subroutine Nesting**: `zzz/zzz/` chaining is forbidden.
-  - **No Subroutines in `user/`**: `user/` functions must remain lean controllers without `zzz/` folders. Complex routines belong in `game/` or `system/util/`.
+  - **No Subroutines in `user/`**: `user/` functions must remain lean controllers without `zzz/` folders. Complex routines belong in `game/` or `system/`.
 *(Detailed guide: [references/code-conventions.md](references/code-conventions.md))*
 
 ### Rule 3: Namespace & Resource Naming Standards

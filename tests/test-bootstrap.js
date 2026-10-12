@@ -90,17 +90,20 @@ if (fs.existsSync(engineeringSkillPath)) {
   assert(content.includes('datapack-mcp'), 'datapack-engineering SKILL.md references companion datapack-mcp');
   assert(content.includes('Mandatory Dependency Gate'), 'datapack-engineering SKILL.md enforces Mandatory Dependency Gate');
   assert(!content.includes('Environment Fallback Protocol'), 'datapack-engineering SKILL.md has fallback protocol removed');
-  assert(content.includes('5-Tier Directory Hierarchy') || content.includes('5 Core Functional Tiers'), 'datapack-engineering SKILL.md enforces 5 functional tiers');
+  assert(content.includes('4-Tier Directory Hierarchy') || content.includes('4 Core Functional Tiers'), 'datapack-engineering SKILL.md enforces 4 functional tiers');
+  assert(!content.includes('system/util'), 'datapack-engineering SKILL.md does not mention system/util');
   assert(content.includes('uninstall.mcfunction'), 'datapack-engineering SKILL.md specifies uninstall.mcfunction as universal teardown');
 }
 
-// 4. Universal Agent Rules (5 Tiers, Validation Boundaries, Composite Lifecycle)
+// 4. Universal Agent Rules (4 Tiers, Validation Boundaries, Composite Lifecycle)
 assert(fs.existsSync(rulesPath), 'rules/AGENTS.md exists');
 if (fs.existsSync(rulesPath)) {
   const content = fs.readFileSync(rulesPath, 'utf8');
   assert(content.includes('datapack-mcp'), 'rules/AGENTS.md references datapack-mcp');
   assert(content.includes('Hard Stop Policy (No Fallback)'), 'rules/AGENTS.md specifies Hard Stop Policy (No Fallback)');
   assert(!content.includes('Fallback Mode'), 'rules/AGENTS.md has Fallback Mode removed');
+  assert(content.includes('4 Core Functional Tiers') || content.includes('4 Functional Tiers'), 'rules/AGENTS.md enforces 4 functional tiers');
+  assert(!content.includes('system/util'), 'rules/AGENTS.md does not mention system/util');
   assert(content.includes('user/') && content.includes('game/') && content.includes('visual/'), 'rules/AGENTS.md defines functional tiers');
   assert(content.includes('@context player'), 'rules/AGENTS.md enforces @context player for user/ layer');
   assert(content.includes('@internal'), 'rules/AGENTS.md enforces @internal for game/ layer');

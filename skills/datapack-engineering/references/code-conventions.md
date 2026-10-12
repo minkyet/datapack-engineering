@@ -1,6 +1,6 @@
 # Datapack Coding & Project Conventions
 
-Comprehensive coding standards, 5-tier directory hierarchy, validation boundary rules, and resource naming conventions for Minecraft Java Edition datapacks.
+Comprehensive coding standards, 4-tier directory hierarchy, validation boundary rules, and resource naming conventions for Minecraft Java Edition datapacks.
 
 ---
 
@@ -67,9 +67,9 @@ In the root function directory (`data/<namespace>/function/`), **ONLY** the desi
 
 ---
 
-## 3. Directory Structure, 5 Functional Tiers & Validation Boundaries
+## 3. Directory Structure, 4 Functional Tiers & Validation Boundaries
 
-### 5 Core Functional Tiers
+### 4 Core Functional Tiers
 Apart from designated root entrypoints, all functions belong to structured domain tiers:
 
 | Tier | Role / Pattern | Key Responsibilities | Examples |
@@ -78,7 +78,6 @@ Apart from designated root entrypoints, all functions belong to structured domai
 | **`game/`** | Model / Domain Logic | • Core game business logic, mechanics, and state changes<br>• Omits redundant input checks when called from `user/`<br>• Enforces Domain State Guards on async/tick calls<br>• **Strictly `@internal` (NEVER `@public`)** | Currency deduction, inventory item grant, mob summoning, victory condition check |
 | **`visual/`** | View / Render | • Pure presentation side-effects; never mutates game state scores/storages<br>• Controls sounds, particles, text messages, display entities | Skill effects, `playsound`, `tellraw`, `item_display` animations |
 | **`system/`** | Infrastructure | • Root entrypoint sub-modules (`load`, `tick`), schedulers, GC<br>• **Sensor Listeners**: detects clicks on interaction entities and bridges to `user/` via `execute on target` | Scoreboard registration, timer schedulers, interaction bridges |
-| **`system/util/`** | Library | • Pure, stateless algorithms independent of specific game rules<br>• Input-to-output pure computation | RNG generator, vector arithmetic, raycasting template, string parsing |
 
 *(Note: Datapack authors retain discretion to add project-specific top-level folders, such as `event/` or `custom/`, when required by domain architecture).*
 
@@ -190,7 +189,7 @@ kill @s
   - Parent: `data/<namespace>/function/game/combat/strike.mcfunction`
   - Helper: `data/<namespace>/function/game/combat/zzz/calc_damage.mcfunction`
 - **No Subroutine Nesting**: `zzz/zzz/` directories are forbidden. All helper functions for a module reside flatly inside the single `zzz/` directory.
-- **No Subroutines in `user/`**: Functions in `user/` must remain concise controllers without `zzz/` subroutines. Logic requiring subroutines must be factored into `game/` or `system/util/`.
+- **No Subroutines in `user/`**: Functions in `user/` must remain concise controllers without `zzz/` subroutines. Logic requiring subroutines must be factored into `game/` or `system/`.
 - **IMP-Doc Contract**: Subroutines MUST declare `@private within <parent_function_id>`.
 
 ---
