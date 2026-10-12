@@ -16,7 +16,7 @@ Every `.mcfunction` file MUST start with the standard IMP-Doc v2 documentation h
 # @context @root (or target context: player, entity, etc.)
 # @public / @internal / @private within <path>
 # @handles function_tag <tag> (include if triggered by function tag/advancement)
-# @reads / @writes / @input / @returns (include if applicable; explicit holders required, no wildcard *)
+# @reads / @writes / @input / @returns (include if applicable; explicit holders required, literal * allowed only for batch operations)
 ```
 
 ### Context and Visibility Constraints
@@ -36,6 +36,7 @@ Every `.mcfunction` file MUST start with the standard IMP-Doc v2 documentation h
 
 ### Special Directives Rules
 - **Omission of `@writes` in `load.mcfunction`**: Because `load.mcfunction` is the root bootstrapper that registers objectives, populates constants, and sets up initialization storages, listing every individual `@writes` directive causes excessive header bloat. Therefore, `@writes` directives must be omitted in `load.mcfunction`.
+- **Score Directives (`@reads` / `@writes`)**: Explicit score holders (e.g. `@s`, `@a`, `#reg`, `##const`) must be specified. Using `*` as a lazy placeholder is prohibited; however, literal `*` is permitted when commands legitimately execute batch operations across all tracked holders in that objective (e.g. `scoreboard players operation * records += * primes`).
 
 ### Line Wrapping & Indentation
 - **Line Continuation**: When command lines become long (such as complex `execute` conditionals), wrap them onto new lines using a trailing backslash (`\`).

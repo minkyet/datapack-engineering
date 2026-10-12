@@ -36,8 +36,9 @@ Every `.mcfunction` file MUST start with an IMP-Doc v2 header:
 # @context @root (or player, entity, etc.)
 # @public / @internal / @private within <parent_path>
 # @handles function_tag <tag> (if triggered by #minecraft:load, etc.)
-# @reads score / @writes score (explicit score holders, no *)
+# @reads score / @writes score (explicit score holders; literal * allowed only for batch operations)
 ```
+- **Score Directives (`@reads` / `@writes`)**: Explicit score holders (e.g. `@s`, `@a`, `#reg`, `##const`) must be specified. Lazy placeholder use of `*` is prohibited; literal `*` is permitted only when commands execute batch operations across all tracked holders in an objective.
 - **Scope Rule for `game/`**: Functions in `game/` MUST declare `@internal` (or `@private within ...` for subroutines). Declaring `@public` on `game/` functions is strictly prohibited to prevent bypassing `user/` validation.
 - **Context Rule for `user/`**: Functions in `user/` MUST declare `@context player` (or player-centric context). Calling `user/` functions from `@root` or non-player entities directly is prohibited.
 

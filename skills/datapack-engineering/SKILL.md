@@ -51,7 +51,7 @@ flowchart LR
   # @context @root (or player, entity, etc.)
   # @public / @internal / @private within <path>
   # @handles function_tag <tag> (include if triggered by function tag/advancement)
-  # @reads / @writes / @input / @returns (include if applicable; explicit holders required)
+  # @reads / @writes / @input / @returns (include if applicable; explicit holders required, literal * allowed only for batch operations)
   ```
 - **Context and Scope Constraints**:
   - `user/` functions MUST declare `@context player` (or player-centric context).

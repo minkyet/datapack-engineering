@@ -65,8 +65,8 @@ Declares event tags or advancement triggers that automatically execute this func
 
 Declare data read, written, or passed into the function. Analyzers and maintainers use these to trace side effects:
 
-- **`@reads score <holder> <objective>`**: Scores read by conditionals or arithmetic. Explicit score holders are required (no wildcards `*`).
-- **`@writes score <holder> <objective>`**: Scores modified or stored into. *(Note: Omitted in `load.mcfunction` to prevent header bloat).*
+- **`@reads score <holder> <objective>`**: Scores read by conditionals or arithmetic. Explicit score holders are required (`@s`, `@a`, `#reg`, `##const`). Lazy wildcarding is prohibited; literal `*` is permitted only when executing genuine batch operations across all tracked holders in that objective.
+- **`@writes score <holder> <objective>`**: Scores modified or stored into. *(Note: Omitted in `load.mcfunction` to prevent header bloat. Literal `*` allowed for batch operations).*
 - **`@reads storage <id> <path>`** / **`@writes storage <id> <path>`**: NBT storage paths accessed.
 - **`@input macro { <key>: <type> }`**: Parameters expected when called via `function ... with ...`.
 - **`@returns @result <description>`**: Value returned by the `return run` or `return <int>` command.
@@ -82,8 +82,9 @@ Declare data read, written, or passed into the function. Analyzers and maintaine
 #
 # @context player
 # @public
-# @reads score @s arena.gold
-# @reads score ##sword_price arena.const
+# @reads 
+#   score @s arena.gold
+#   score ##sword_price arena.const
 ```
 
 ### Example B: Game Layer Internal Domain Action
@@ -112,7 +113,20 @@ Declare data read, written, or passed into the function. Analyzers and maintaine
 #
 # @context target enemy entity
 # @private within arena:game/combat/strike
-# @reads score @s arena.defense
-# @reads score #raw_damage arena.temp
+# @reads
+#   score @s arena.defense
+#   score #raw_damage arena.temp
 # @writes score #final_damage arena.temp
+```
+
+### Example E: Batch Scoreboard Operation (Literal `*`)
+```mcfunction
+#> math:prime/sieve
+# Sieve of Eratosthenes batch record addition across all tracked holders
+#
+# @context @root
+# @internal
+# @reads score * math.primes
+# @writes score sum math.records
+scoreboard players operation sum math.records += * math.primes
 ```
