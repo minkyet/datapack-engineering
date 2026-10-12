@@ -31,7 +31,7 @@ At the start of any datapack engineering task, check whether `spyglass_*` (`spyg
 Every `.mcfunction` file MUST start with an IMP-Doc v2 header (`#> <namespace>:path/to/function`):
 - **Score Directives (`@reads` / `@writes`)**: Explicit score holders (e.g. `@s`, `@a`, `#reg`, `##const`) must be specified. Lazy placeholder use of `*` is prohibited; literal `*` is permitted only when commands execute batch operations across all tracked holders in an objective.
 - **Scope Rule for `game/`**: Functions in `game/` MUST declare `@internal` (or `@private within ...` for subroutines). Declaring `@public` on `game/` functions is strictly prohibited.
-- **Context Rule for `user/`**: Functions in `user/` MUST declare `@context player` (or player-centric context). Calling `user/` functions from `@root` or non-player entities directly is prohibited.
+- **Context Rule for `user/`**: Functions in `user/` MUST declare `@context player` (or player-centric context). `user/` functions must declare `@internal`.
 *(Detailed specification: [imp-doc-v2.md](../skills/datapack-engineering/references/imp-doc-v2.md) | [code-conventions.md](../skills/datapack-engineering/references/code-conventions.md))*
 
 ### Directory Hierarchy & 4 Functional Tiers

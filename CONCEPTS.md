@@ -29,7 +29,7 @@ A pre-distribution composite routine for map-dependent packs that restores the w
 ### User Layer (`user/`)
 The controller and gatekeeper tier that receives player inputs, `/trigger` commands, and bridged interaction events.
 
-Functions in this tier must execute under player context (`@context player`). They enforce the Standard 3-Step Protocol: input consumption/trigger reset, actor qualification, and delegation to domain logic.
+Functions in this tier must execute under player context (`@context player`) and must declare `@public`. They enforce the Standard 3-Step Protocol: input consumption/trigger reset, actor qualification, and delegation to domain logic.
 
 ### Game Layer (`game/`)
 The domain model tier that executes core game mechanics, score mutations, and atomic state transitions.

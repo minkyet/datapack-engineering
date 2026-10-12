@@ -77,8 +77,8 @@ Apart from designated root entrypoints, all functions belong to structured domai
 
 | Tier | Role / Pattern | Key Responsibilities | Examples |
 |---|---|---|---|
-| **`user/`** | Controller / Gatekeeper | • Player input protocol handling (`/trigger`, NPC interaction bridge)<br>• **Request Qualification (range, state, cooldown, currency)**<br>• Early exit on failure (`return fail`) with feedback via `visual/`<br>• **Strictly `@context player`** | Shop buy request, unit placement click, menu GUI interaction |
-| **`game/`** | Model / Domain Logic | • Core game business logic, mechanics, and state changes<br>• Omits redundant input checks when called from `user/`<br>• Enforces Domain State Guards on async/tick calls<br>• **Strictly `@internal` (NEVER `@public`)** | Currency deduction, inventory item grant, mob summoning, victory condition check |
+| **`user/`** | Controller / Gatekeeper | • Player input protocol handling (`/trigger`, NPC interaction bridge)<br>• **Request Qualification (range, state, cooldown, currency)**<br>• Early exit on failure (`return fail`) with feedback via `visual/`<br>• **Strictly `@context player` and `@public`** | Shop buy request, unit placement click, menu GUI interaction |
+| **`game/`** | Model / Domain Logic | • Core game business logic, mechanics, and state changes<br>• Omits redundant input checks when called from `user/`<br>• Enforces Domain State Guards on async/tick calls<br>• **Strictly `@internal` or `@private with` for `zzz` subroutine (NEVER `@public`)** | Currency deduction, inventory item grant, mob summoning, victory condition check |
 | **`visual/`** | View / Render | • Pure presentation side-effects; never mutates game state scores/storages<br>• Controls sounds, particles, text messages, display entities | Skill effects, `playsound`, `tellraw`, `item_display` animations |
 | **`system/`** | Infrastructure | • Root entrypoint sub-modules (`load`, `tick`), schedulers, GC<br>• **Sensor Listeners**: detects clicks on interaction entities and bridges to `user/` via `execute on target` | Scoreboard registration, timer schedulers, interaction bridges |
 
