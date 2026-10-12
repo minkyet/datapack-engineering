@@ -3,4 +3,6 @@ skills/skill-creator/
 *.log
 .DS_Store
 scratch/
-docs/
+docs/*
+!docs/solutions/
+!docs/plans/
