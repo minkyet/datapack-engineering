@@ -19,6 +19,8 @@ Every `.mcfunction` file MUST start with the standard IMP-Doc v2 documentation h
 # @reads / @writes / @input / @returns (include if applicable; explicit holders required, literal * allowed only for batch operations)
 ```
 
+*(For the complete IMP-Doc v2 specification and directive reference, see [imp-doc-v2.md](imp-doc-v2.md)).*
+
 ### Context and Visibility Constraints
 - **`user/` Functions**: MUST declare `@context player` (or player-centric execution context). Calling `user/` functions from `@root` or non-player entities directly is prohibited.
 - **`game/` Functions**: MUST declare `@internal` (or `@private within ...`). Declaring `@public` on `game/` functions is strictly prohibited.

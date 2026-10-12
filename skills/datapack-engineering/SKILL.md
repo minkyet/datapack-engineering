@@ -1,6 +1,6 @@
 ---
 name: datapack-engineering
-description: Core verification lifecycles, 4-tier architecture, validation boundaries, composite entrypoints (load/tick/uninstall/reset), zzz private subroutines, naming rules, mcdoc verification, and IMP-Doc v2 function contracts for Minecraft Java Edition datapacks. Use this skill whenever enforcing datapack conventions, verifying NBT/components with mcdoc, analyzing project integrity with Spyglass, or writing IMP-Doc v2 function contracts and safe tick loops.
+description: Core verification lifecycles, 4-tier directory hierarchy, validation boundaries, composite entrypoints (load/tick/uninstall/reset), zzz private subroutines, naming rules, mcdoc verification, and IMP-Doc v2 function contracts for Minecraft Java Edition datapacks. Use this skill whenever enforcing datapack conventions, verifying NBT/components with mcdoc, analyzing project integrity with Spyglass, or writing IMP-Doc v2 function contracts and safe tick loops.
 ---
 
 # Minecraft Datapack Engineering (Verification, Contracts & Conventions)
@@ -40,68 +40,37 @@ flowchart LR
 
 ---
 
-## 2. Fundamental Engineering & Coding Conventions
+## 2. Key Engineering Invariants & Convention Quick Reference
 
-### Rule 1: Function Formatting & IMP-Doc v2 Contracts
-- **Mandatory Header Format**: Every `.mcfunction` file MUST start with the standard IMP-Doc v2 header:
-  ```mcfunction
-  #> <namespace>:path/to/function
-  # Brief explanation (one-line summary)
-  #
-  # @context @root (or player, entity, etc.)
-  # @public / @internal / @private within <path>
-  # @handles function_tag <tag> (include if triggered by function tag/advancement)
-  # @reads / @writes / @input / @returns (include if applicable; explicit holders required, literal * allowed only for batch operations)
-  ```
-- **Context and Scope Constraints**:
-  - `user/` functions MUST declare `@context player` (or player-centric context).
-  - `game/` functions MUST declare `@internal` (or `@private within ...`). Never `@public`.
-- **Comment Hierarchy**:
-  - Subsections/topic dividers in the function body use `##` without section numbers (e.g., `## Initialize variables`, never `## 1. Initialize variables`).
-  - Contextual comments use `#` minimally, only for essential context. No rigid language restriction is enforced; match the project's requirements.
-- **Line Wrapping & Indentation**:
-  - Trailing backslash (`\`) for long commands.
-  - Continuation lines must use **4 spaces** indentation. Hard tabs (`\t`) are strictly prohibited.
-- **Safe Tick Loop Pattern**:
-  - Check `#stop_requested_*` at the very top of scheduled loops; if set, branch to cleanup and `return run`.
-  - Reschedule at the bottom via `schedule function <function_name> 1t append`.
-- **Minecraft 1.21.5+ Text Component Formatting**:
-  - Quoted JSON string components (e.g. `'{"text":"hello"}'`) output raw JSON literals starting in 1.21.5+.
-  - Always use unquoted JSON objects (e.g. `tellraw @a {"text":"hello"}`) or raw string literals (`tellraw @a "hello"`).
-*(Detailed guides: [references/code-conventions.md](references/code-conventions.md) | [references/imp-doc-v2.md](references/imp-doc-v2.md))*
-
-### Rule 2: Datapack Entry Points & 4-Tier Directory Hierarchy
+### Rule 1: Datapack Entry Points & 4-Tier Directory Hierarchy
 - **Lifecycle Entry Points**: In `data/<namespace>/function/` root, **ONLY** designated lifecycle entrypoints are permitted:
-  - `load.mcfunction`: Registered in `#minecraft:load` (`@internal`). Boot environment initialization for scoreboard objectives and immutable constants (`##<value>`).
-    - **Hot-Reload Safety Contract**: Because `load` fires on server startup, world joining, and **any mid-game `/reload`**, it MUST be strictly **non-destructive and idempotent**.
-    - **Strictly Forbidden in `load`**: Resetting or mutating runtime/player scores (e.g. `set @a gold 0`, `set #state 0`, `#wave`), spawning or killing entities (`summon`, `kill`), restoring map blocks (`fill`, `setblock`), or modifying player inventories/locations (`give`, `tp`). Doing so destroys active gameplay progression on `/reload`.
-    - Initializing runtime state, spawning fixed NPCs, or restoring arenas is strictly the responsibility of `reset.mcfunction` (or one-time player join handlers via tags).
+  - `load.mcfunction`: Registered in `#minecraft:load` (`@internal`). Boot initialization for objectives and constants (`##<value>`). Must be strictly non-destructive and idempotent.
   - `tick.mcfunction`: Registered in `#minecraft:tick` (`@internal`). 20Hz clock loop dispatcher.
-  - `uninstall.mcfunction`: **Mandatory Teardown Hook for ALL datapacks** (`@public`). Cancels active schedules (`schedule clear`), kills entities tagged `<namespace>`, removes bossbars, storages, and objectives.
-  - `reset.mcfunction`: **Mandatory Factory Reset Hook for Map-Dependent Packs** (`@public`, optional for standalone libraries). Prepares factory state before release by executing:
-    1. `function <namespace>:uninstall` (Teardown)
-    2. `function <namespace>:load` (Bootstrap)
-    3. Map seeding logic (spawning fixed NPCs, gamemodes, spawns, resetting runtime scores `#state = 0`).
-    *(Note: `reset` and `uninstall` must never be called during active gameplay or tick loops).*
+  - `uninstall.mcfunction`: **Mandatory Teardown Hook for ALL datapacks** (`@public`). Completely purges objectives, storages, bossbars, entities tagged `<namespace>`, and scheduled tasks (`schedule clear`).
+  - `reset.mcfunction`: **Mandatory Factory Reset Hook for Map-Dependent Packs** (`@public`, optional for standalone). Composite pipeline: 1. `function <namespace>:uninstall` → 2. `function <namespace>:load` → 3. Map seeding.
+  *(Note: `reset` and `uninstall` must never be called during active gameplay or tick loops).*
 - **4 Core Functional Tiers**:
-  - `user/`: Controller / Gatekeeper. Player input handling (`/trigger`, interaction bridge). Strictly `@context player`. Implements the **Standard 3-Step Protocol**: (1) Consume input/reset triggers first, (2) Actor qualification & early exit, (3) Delegate to `game/` (or `visual/` for UI). Target state checks are forbidden here.
-  - `game/`: Model / Domain Logic. Core game mechanics and state mutations. Strictly `@internal`. Encapsulates **Domain Invariant Guards** (target object validity, vehicle seats, shop stock, match states; safely reusable across player actions, AI agents, and events). Omits redundant actor qualification checks when called from `user/`, while enforcing state guards on async/tick calls.
+  - `user/`: Controller / Gatekeeper. Player input reception (`/trigger`, interaction bridge). Mandatory `@context player`. Implements the **Standard 3-Step Protocol** (1. Input reset, 2. Qualification, 3. Delegation).
+  - `game/`: Model / Domain Logic. Game mechanics and state mutations. Mandatory `@internal`. Encapsulates **Domain Invariant Guards**; omits redundant input checks when called from `user/`.
   - `visual/`: View / Render. Pure presentation side-effects (particles, sounds, displays, `tellraw`). Never mutates game scores/storages.
   - `system/`: Infrastructure. Schedulers, cleanup tasks, and sensor listeners (bridges interaction clicks to `user/` via `execute on target`).
-  - *(Projects retain discretion to add custom top-level tiers like `event/` or `custom/` when needed).*
+  - *(Projects retain discretion to add custom top-level tiers like `event/` when needed).*
 - **Private Subroutine Functions (`zzz/`)**:
-  - Helper functions dedicated to a specific parent function must be placed in a flat `zzz/` folder inside the parent's directory (e.g. `system/timer/zzz/tick_helper.mcfunction`) with `@private within <parent_path>`.
-  - **No Subroutine Nesting**: `zzz/zzz/` chaining is forbidden.
-  - **No Subroutines in `user/`**: `user/` functions must remain lean controllers without `zzz/` folders. Complex routines belong in `game/` or `system/`.
-*(Detailed guide: [references/code-conventions.md](references/code-conventions.md))*
+  - Flat `zzz/` folder inside the parent's directory declaring `@private within <parent_path>`.
+  - `zzz/zzz/` nesting is strictly forbidden; `user/` functions must not contain `zzz/` subroutines.
+*(Detailed architectural guide & patterns: [references/code-conventions.md](references/code-conventions.md#2-datapack-entry-points-root-function-rules))*
 
-### Rule 3: Namespace & Resource Naming Standards
-- **Datapack & Namespace**: `snake_case` (`^[a-z0-9_.-]+$`). Exactly 1 custom namespace matching the pack name.
-- **Resource Naming Hierarchy**:
-  - **Scoreboard Objectives**: `<namespace>` (global state), `<namespace>.<role>` (general dummy), `<namespace>.const` (constants), `<namespace>.temp` (temp calc), `<namespace>.display.<role>` (display).
-  - **Fake Players**: `#<reg>` (engine registers), `##<num>` (immutable constants), `$<slot>` (UI/HUD slots).
-  - **Other Identifiers**: Entity tags `<namespace>.<role>[.<subrole>]`, Storage `<namespace>:<table>`, Bossbars `<namespace>:<name>`, Item custom_data `[custom_data={<namespace>:{...}}]`.
-*(Detailed guide: [references/code-conventions.md](references/code-conventions.md))*
+### Rule 2: Function Formatting & IMP-Doc v2 Contracts
+- **Header Standard**: Every `.mcfunction` file MUST start with the standard IMP-Doc v2 header (`#> <namespace>:path/to/function`) with explicit `@context`, scope, and score holder directives.
+- **Line Wrapping & Indentation**: Trailing backslash (`\`) for long commands; continuation lines must use **4 spaces** indentation (no hard tabs).
+- **Safe Tick Loop Pattern**: Check `#stop_requested_*` at top; reschedule at bottom via `schedule function <function_name> 1t append`.
+*(Detailed guides: [references/imp-doc-v2.md](references/imp-doc-v2.md) | [references/code-conventions.md](references/code-conventions.md#1-function-formatting--comment-standards))*
+
+### Rule 3: Namespace, Naming Standards & Modern Syntax
+- **Namespace Identity**: Single custom namespace matching the pack name in `snake_case`.
+- **Resource Naming**: Hierarchical objectives (`<namespace>.<role>`), fake players (`#<reg>`, `##<num>`, `$<slot>`), entity tags, storage, bossbars, and item `custom_data`.
+- **Minecraft 1.21.5+ Text Formatting**: Always use unquoted JSON objects or raw string literals; avoid legacy quote-wrapping.
+*(Comprehensive naming tables & selector performance: [references/code-conventions.md](references/code-conventions.md#5-resource-naming-conventions))*
 
 ---
 

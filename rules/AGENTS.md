@@ -28,70 +28,52 @@ At the start of any datapack engineering task, check whether `spyglass_*` (`spyg
 ## 2. Core Engineering Standards & Conventions
 
 ### Function Headers (IMP-Doc v2)
-Every `.mcfunction` file MUST start with an IMP-Doc v2 header:
-```mcfunction
-#> <namespace>:path/to/function
-# Brief one-line summary
-#
-# @context @root (or player, entity, etc.)
-# @public / @internal / @private within <parent_path>
-# @handles function_tag <tag> (if triggered by #minecraft:load, etc.)
-# @reads score / @writes score (explicit score holders; literal * allowed only for batch operations)
-```
+Every `.mcfunction` file MUST start with an IMP-Doc v2 header (`#> <namespace>:path/to/function`):
 - **Score Directives (`@reads` / `@writes`)**: Explicit score holders (e.g. `@s`, `@a`, `#reg`, `##const`) must be specified. Lazy placeholder use of `*` is prohibited; literal `*` is permitted only when commands execute batch operations across all tracked holders in an objective.
-- **Scope Rule for `game/`**: Functions in `game/` MUST declare `@internal` (or `@private within ...` for subroutines). Declaring `@public` on `game/` functions is strictly prohibited to prevent bypassing `user/` validation.
+- **Scope Rule for `game/`**: Functions in `game/` MUST declare `@internal` (or `@private within ...` for subroutines). Declaring `@public` on `game/` functions is strictly prohibited.
 - **Context Rule for `user/`**: Functions in `user/` MUST declare `@context player` (or player-centric context). Calling `user/` functions from `@root` or non-player entities directly is prohibited.
+*(Detailed specification: [imp-doc-v2.md](../skills/datapack-engineering/references/imp-doc-v2.md) | [code-conventions.md](../skills/datapack-engineering/references/code-conventions.md))*
 
 ### Directory Hierarchy & 4 Functional Tiers
-In `data/<namespace>/function/`, all logic resides in designated lifecycle entrypoints and functional tiers:
+In `data/<namespace>/function/`, all logic resides in designated lifecycle entrypoints and 4 functional tiers:
 
 1. **Lifecycle Entrypoints (Root Function Directory)**:
    - ONLY designated lifecycle entrypoints are permitted directly in `data/<namespace>/function/`:
-     - `load.mcfunction`: Runtime boot initialization (`@internal`, registered in `#minecraft:load`).
+     - `load.mcfunction`: Runtime boot initialization (`@internal`, registered in `#minecraft:load`). Non-destructive and idempotent.
      - `tick.mcfunction`: 20Hz clock loop dispatcher (`@internal`, registered in `#minecraft:tick`).
-     - `uninstall.mcfunction`: **Mandatory Teardown Hook for ALL datapacks** (`@public`). Completely purges created objectives, storages, bossbars, entities tagged `<namespace>`, and scheduled tasks (`schedule clear`).
-     - `reset.mcfunction`: **Mandatory Pre-distribution Factory Reset for map-dependent packs** (`@public`, optional for standalone libraries). Executes composite teardown and setup in order:
-       1. `function <namespace>:uninstall` (Teardown)
-       2. `function <namespace>:load` (Bootstrap)
-       3. Initial map seeding (spawning permanent map NPCs, resetting player coordinates/gamemodes).
-     - `reset` and `uninstall` MUST NEVER be called during active gameplay or runtime ticks/triggers (strictly manual developer execution prior to release or complete teardown).
+     - `uninstall.mcfunction`: **Mandatory Teardown Hook for ALL datapacks** (`@public`). Completely purges objectives, storages, bossbars, entities tagged `<namespace>`, and scheduled tasks (`schedule clear`).
+     - `reset.mcfunction`: **Mandatory Pre-distribution Factory Reset for map-dependent packs** (`@public`, optional for standalone libraries). Composite pipeline: 1. `function <namespace>:uninstall` → 2. `function <namespace>:load` → 3. Map seeding.
+     - `reset` and `uninstall` MUST NEVER be called during active gameplay or runtime ticks/triggers.
 2. **4 Core Functional Tiers**:
-   - `user/`: Controller / Gatekeeper. Player input reception (`/trigger`, NPC interaction bridge). Performs **Request Qualification** (distance, cooldown, cost, permissions). Bails out early with `return fail` on mismatch.
-   - `game/`: Model / Domain Logic. Executes core game state changes and mechanics. Marked `@internal` only.
-   - `visual/`: View / Render. Pure presentation and side-effects (`playsound`, `particle`, displays, `tellraw`). Never mutates game state scores or storages.
-   - `system/`: Infrastructure. Schedulers, garbage collection, and sensor listeners (e.g. detecting interaction entities and bridging to `user/` via `execute on target`).
-   - *(Note: Projects may introduce additional top-level domain folders such as `event/` or `custom/` when demanded by specific architecture requirements.)*
+   - `user/`: Controller / Gatekeeper. Player input reception (`/trigger`, interaction bridge). Mandatory `@context player`.
+   - `game/`: Model / Domain Logic. Executes core game state changes and mechanics. Mandatory `@internal`.
+   - `visual/`: View / Render. Pure presentation side-effects (`playsound`, `particle`, displays, `tellraw`). Never mutates game state scores or storages.
+   - `system/`: Infrastructure. Schedulers, garbage collection, and sensor listeners (bridges interaction clicks to `user/` via `execute on target`).
+   - *(Note: Projects may introduce custom top-level domain folders like `event/` when needed).*
 3. **Private Subroutines (`zzz/`)**:
-   - Helper functions dedicated to a parent function must reside in a flat `zzz/` folder inside the parent's directory and declare `@private within <namespace>:path/to/parent`.
-   - **No Subroutine Nesting**: `zzz/zzz/` chaining is strictly forbidden; all subroutines in a module share the same flat `zzz/` directory.
-   - **No Subroutines in `user/`**: Functions in `user/` MUST NOT contain `zzz/` subroutines. Complex logic belongs in `game/` or `system/`.
+   - Flat `zzz/` folder inside the parent's directory declaring `@private within <namespace>:path/to/parent`.
+   - `zzz/zzz/` nesting is strictly forbidden; all subroutines in a module share the same flat `zzz/` directory.
+   - `user/` functions MUST NOT contain `zzz/` subroutines.
 
 ### Validation Boundaries & Asynchronous Safety
-- **Subject-of-Validation Principle**:
-  - **Actor Qualification (`user/`)**:
-    - *Subject*: *"Does the calling player (@s) qualify to make this request?"*
-    - Checks actor constraints: distance to target (`distance=..3`), debounce/cooldowns, role/permission tags, player alive/not stunned.
-    - Unmet conditions trigger immediate early exit (`return fail`) and user feedback via `visual/`.
-  - **Domain Invariant Guards (`game/`)**:
-    - *Subject*: *"Can the target object or world state accept this domain action?"*
-    - Checks target/aggregate invariants: available seats in vehicle/taxi, remaining limited shop stock, validity of target interaction entity, match/phase state.
-    - **Domain Encapsulation Mandate**: Because `game/` domain functions must be safely reusable across human players, AI agents, quests, and system schedulers, target invariants (e.g. `taxi_seats > 0`) MUST be encapsulated inside `game/`. Checking target entity states inside `user/` is an anti-pattern.
+- **Validation Boundaries**:
+  - `user/` exclusively owns **Actor Qualification**: Validates caller distance, cooldowns, and permission tags. Exits early on mismatch (`return fail`). Target entity state checks are strictly forbidden here.
+  - `game/` exclusively owns **Domain Invariant Guards**: Validates target entity state, inventory stock, vehicle seats, and match phase. Redundant caller qualification checks verified by `user/` are omitted.
 - **Asynchronous Safety (`game/`)**:
-  - When invoked downstream of `user/`, `game/` omits redundant input checks (distance, player cooldowns) already verified by the caller.
-  - When invoked asynchronously via `schedule` or `tick`, `game/` MUST include domain state guards (`execute unless entity @s run return fail`, game phase matches) to guard against world drift during scheduling delays.
+  - Functions invoked via `schedule` or `tick` MUST enforce domain state guards (`execute unless entity @s run return fail`, phase checks) to guard against world drift during scheduling delays.
 - **Standard 3-Step Protocol for `user/` Functions**:
   All `user/` functions must structure their logic in this strict sequential order:
-  1. *Consume Input & Reset Triggers* (optional): Clear `/trigger` scores or revoke advancements. **MUST** precede any condition checks so triggers are consumed even if qualification fails, preventing infinite execution loops.
-  2. *Actor Qualification & Early Exit* (optional): Check caller distance, cooldown, and permission tags; exit early on mismatch (`return fail` or `return run function visual:...`).
+  1. *Consume Input & Reset Triggers* (optional): Clear `/trigger` scores or revoke advancements first (prevents infinite loop errors on early exit).
+  2. *Actor Qualification & Early Exit* (optional): Check caller distance, cooldown, and permission tags; exit early on mismatch.
   3. *Delegate to Domain Logic*: Delegate state mutations to `game/`, or directly invoke `visual/` for stateless UI/menu requests.
+*(Detailed architectural patterns & The Taxi Problem: [code-conventions.md](../skills/datapack-engineering/references/code-conventions.md))*
 
 ### Safe Tick Loop Pattern
 - Schedulers and tick loops MUST check `#stop_requested_<name>` at the very top. If set, clean up and terminate with `return run`.
 - Reschedule at the bottom via `schedule function <function_name> 1t append`.
 
 ### Minecraft 1.21.5+ Text Component Formatting
-- **Quote-Wrapping Deprecation**: Starting in Minecraft 1.21.5+, wrapping JSON text components in string quotes (e.g. `'{"text":"hello"}'`) outputs the raw JSON literal string in chat.
-- **Modern Syntax**: Always supply unquoted JSON objects (e.g. `tellraw @a {"text":"hello","color":"green"}`) or raw string literals (e.g. `tellraw @a "hello"`) in commands and examples.
+- **Modern Syntax Mandate**: In Minecraft 1.21.5+, wrapping JSON text components in string quotes (e.g. `'{"text":"hello"}'`) outputs the raw JSON literal string in chat. Always supply unquoted JSON objects (e.g. `tellraw @a {"text":"hello"}`) or raw string literals (`tellraw @a "hello"`).
 
 ---
 
