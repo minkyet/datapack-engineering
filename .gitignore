@@ -4,5 +4,3 @@ skills/skill-creator/
 .DS_Store
 scratch/
 docs/*
-!docs/solutions/
-!docs/plans/
