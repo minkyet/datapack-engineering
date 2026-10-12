@@ -95,7 +95,7 @@ if (fs.existsSync(engineeringSkillPath)) {
   assert(content.includes('uninstall.mcfunction'), 'datapack-engineering SKILL.md specifies uninstall.mcfunction as universal teardown');
 }
 
-// 4. Universal Agent Rules (4 Tiers, Validation Boundaries, Composite Lifecycle)
+// 4. Universal Agent Rules (4 Tiers, Validation Boundaries, Composite Lifecycle, Root Context Rule)
 assert(fs.existsSync(rulesPath), 'rules/AGENTS.md exists');
 if (fs.existsSync(rulesPath)) {
   const content = fs.readFileSync(rulesPath, 'utf8');
@@ -110,9 +110,17 @@ if (fs.existsSync(rulesPath)) {
   assert(content.includes('uninstall.mcfunction'), 'rules/AGENTS.md enforces universal uninstall.mcfunction teardown');
   assert(content.includes('1.21.5+'), 'rules/AGENTS.md documents 1.21.5+ unquoted text component warning');
   assert(content.includes('Standard 3-Step Protocol'), 'rules/AGENTS.md defines Standard 3-Step Protocol for user/ layer');
+  assert(content.includes('Context Rule for `@root`') && content.includes('@context @root'), 'rules/AGENTS.md enforces Context Rule for @context @root');
 }
 
-// 5. Template Assets Correctness
+// 5. Code Conventions Constraints
+assert(fs.existsSync(conventionsPath), 'references/code-conventions.md exists');
+if (fs.existsSync(conventionsPath)) {
+  const content = fs.readFileSync(conventionsPath, 'utf8');
+  assert(content.includes('`@root` Functions') && content.includes('@context @root'), 'code-conventions.md documents @context @root constraints');
+}
+
+// 6. Template Assets Correctness
 assert(fs.existsSync(uninstallTemplatePath), 'uninstall.mcfunction template exists');
 if (fs.existsSync(uninstallTemplatePath)) {
   const content = fs.readFileSync(uninstallTemplatePath, 'utf8');
@@ -125,6 +133,8 @@ if (fs.existsSync(resetTemplatePath)) {
   const content = fs.readFileSync(resetTemplatePath, 'utf8');
   assert(content.includes('function <namespace>:uninstall'), 'reset.mcfunction calls uninstall as step 1');
   assert(content.includes('function <namespace>:load'), 'reset.mcfunction calls load as step 2');
+  assert(!content.includes('spawnpoint @a ~ ~ ~'), 'reset.mcfunction template does not use un-scoped spawnpoint @a ~ ~ ~');
+  assert(content.includes('execute as @a at @s run spawnpoint @s ~ ~ ~'), 'reset.mcfunction template scopes spawnpoint with execute');
 }
 
 assert(fs.existsSync(userTemplatePath), 'user_function_template.mcfunction template exists');
@@ -135,7 +145,7 @@ if (fs.existsSync(userTemplatePath)) {
   assert(content.includes('Delegate to Domain Logic'), 'user_function_template includes Delegation step');
 }
 
-// 6. Hooks & Bootstrap Script Execution
+// 7. Hooks & Bootstrap Script Execution
 assert(hooksJson && hooksJson['ensure-datapack-mcp'] && hooksJson['ensure-datapack-mcp'].PreInvocation, 'hooks.json defines PreInvocation hook for ensure-datapack-mcp');
 
 try {

@@ -24,6 +24,7 @@ Every `.mcfunction` file MUST start with the standard IMP-Doc v2 documentation h
 ### Context and Visibility Constraints
 - **`user/` Functions**: MUST declare `@context player` (or player-centric execution context). Calling `user/` functions from `@root` or non-player entities directly is prohibited.
 - **`game/` Functions**: MUST declare `@internal` (or `@private within ...`). Declaring `@public` on `game/` functions is strictly prohibited.
+- **`@root` Functions**: Bare `@s` and relative/local coordinates (`~ ~ ~`, `^ ^ ^`) are strictly prohibited because `@root` has no executing entity and anchors to world spawn `(0, 0, 0)`. Commands requiring entity or spatial context MUST explicitly establish it via `execute` (`execute as <selector>`, `execute at <selector>`, etc.) or delegate to a subordinate function with explicit `@context`.
 
 ### Comment Hierarchy
 - **Section Dividers (`##`)**: Major topic branches and logical subheadings within the function body must be prefixed with `##`. Do NOT include numerical numbering (e.g., use `## Validate Target and State`, not `## 1. Validate Target and State`) to prevent renumbering friction during refactoring.

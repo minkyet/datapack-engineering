@@ -32,6 +32,7 @@ Every `.mcfunction` file MUST start with an IMP-Doc v2 header (`#> <namespace>:p
 - **Score Directives (`@reads` / `@writes`)**: Explicit score holders (e.g. `@s`, `@a`, `#reg`, `##const`) must be specified. Lazy placeholder use of `*` is prohibited; literal `*` is permitted only when commands execute batch operations across all tracked holders in an objective.
 - **Scope Rule for `game/`**: Functions in `game/` MUST declare `@internal` (or `@private within ...` for subroutines). Declaring `@public` on `game/` functions is strictly prohibited.
 - **Context Rule for `user/`**: Functions in `user/` MUST declare `@context player` (or player-centric context). `user/` functions must declare `@internal`.
+- **Context Rule for `@root`**: Bare `@s` and relative/local coordinates (`~`, `^`) are strictly prohibited in `@context @root` functions; commands requiring entity or spatial context MUST explicitly establish it via `execute` (`execute as`, `execute at`, etc.).
 *(Detailed specification: [imp-doc-v2.md](../skills/datapack-engineering/references/imp-doc-v2.md) | [code-conventions.md](../skills/datapack-engineering/references/code-conventions.md))*
 
 ### Directory Hierarchy & 4 Functional Tiers
