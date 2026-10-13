@@ -111,6 +111,7 @@ if (fs.existsSync(rulesPath)) {
   assert(content.includes('1.21.5+'), 'rules/AGENTS.md documents 1.21.5+ unquoted text component warning');
   assert(content.includes('Standard 3-Step Protocol'), 'rules/AGENTS.md defines Standard 3-Step Protocol for user/ layer');
   assert(content.includes('Context Rule for `@root`') && content.includes('@context @root'), 'rules/AGENTS.md enforces Context Rule for @context @root');
+  assert(content.includes('gamerule'), 'rules/AGENTS.md explicitly mentions gamerule restriction on load');
 }
 
 // 5. Code Conventions Constraints
@@ -118,6 +119,15 @@ assert(fs.existsSync(conventionsPath), 'references/code-conventions.md exists');
 if (fs.existsSync(conventionsPath)) {
   const content = fs.readFileSync(conventionsPath, 'utf8');
   assert(content.includes('`@root` Functions') && content.includes('@context @root'), 'code-conventions.md documents @context @root constraints');
+  assert(content.includes('gamerule'), 'code-conventions.md documents gamerule restriction on load');
+  assert(content.includes('scoreboard players enable'), 'code-conventions.md documents trigger re-enabling');
+}
+
+// 5.1 IMP-Doc v2 Contracts
+assert(fs.existsSync(impDocPath), 'references/imp-doc-v2.md exists');
+if (fs.existsSync(impDocPath)) {
+  const content = fs.readFileSync(impDocPath, 'utf8');
+  assert(content.includes('@handles enchantment') && content.includes('@returns @success'), 'imp-doc-v2.md includes enchantment trigger and @success return');
 }
 
 // 6. Template Assets Correctness
@@ -141,6 +151,7 @@ assert(fs.existsSync(userTemplatePath), 'user_function_template.mcfunction templ
 if (fs.existsSync(userTemplatePath)) {
   const content = fs.readFileSync(userTemplatePath, 'utf8');
   assert(content.includes('Consume Input & Reset Triggers'), 'user_function_template includes Consume Input step');
+  assert(content.includes('scoreboard players enable'), 'user_function_template re-enables trigger scoreboards');
   assert(content.includes('Actor Qualification & Early Exit'), 'user_function_template includes Actor Qualification step');
   assert(content.includes('Delegate to Domain Logic'), 'user_function_template includes Delegation step');
 }

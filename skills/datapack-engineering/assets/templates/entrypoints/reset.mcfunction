@@ -14,6 +14,6 @@ function <namespace>:load
 # Summon permanent NPCs, interaction bridges, and display entities
 # function <namespace>:system/setup/spawn_npcs
 gamemode adventure @a
-spawnpoint @a 0 0 0
+execute as @a at @s run spawnpoint @s ~ ~ ~
 
 tellraw @a {"text":"[<namespace>] Reset to pristine initial playable state.","color":"green"}

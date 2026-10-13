@@ -44,13 +44,13 @@ flowchart LR
 
 ### Rule 1: Datapack Entry Points & 4-Tier Directory Hierarchy
 - **Lifecycle Entry Points**: In `data/<namespace>/function/` root, **ONLY** designated lifecycle entrypoints are permitted:
-  - `load.mcfunction`: Registered in `#minecraft:load` (`@internal`). Boot initialization for objectives and constants (`##<value>`). Must be strictly non-destructive and idempotent.
+  - `load.mcfunction`: Registered in `#minecraft:load` (`@internal`). Boot initialization for objectives and constants (`##<value>`). Must be strictly non-destructive and idempotent (no score wipes, entity manipulation, or gamerule changes).
   - `tick.mcfunction`: Registered in `#minecraft:tick` (`@internal`). 20Hz clock loop dispatcher.
   - `uninstall.mcfunction`: **Mandatory Teardown Hook for ALL datapacks** (`@public`). Completely purges objectives, storages, bossbars, entities tagged `<namespace>`, and scheduled tasks (`schedule clear`).
   - `reset.mcfunction`: **Mandatory Factory Reset Hook for Map-Dependent Packs** (`@public`, optional for standalone). Composite pipeline: 1. `function <namespace>:uninstall` → 2. `function <namespace>:load` → 3. Map seeding.
   *(Note: `reset` and `uninstall` must never be called during active gameplay or tick loops).*
 - **4 Core Functional Tiers**:
-  - `user/`: Controller / Gatekeeper. Player input reception (`/trigger`, interaction bridge). Mandatory `@context player`. Implements the **Standard 3-Step Protocol** (1. Input reset, 2. Qualification, 3. Delegation).
+  - `user/`: Controller / Gatekeeper. Player input reception (`/trigger`, interaction bridge). Mandatory `@context player`. Implements the **Standard 3-Step Protocol** (1. Input reset & re-enable, 2. Qualification, 3. Delegation).
   - `game/`: Model / Domain Logic. Game mechanics and state mutations. Mandatory `@internal`. Encapsulates **Domain Invariant Guards**; omits redundant input checks when called from `user/`.
   - `visual/`: View / Render. Pure presentation side-effects (particles, sounds, displays, `tellraw`). Never mutates game scores/storages.
   - `system/`: Infrastructure. Schedulers, cleanup tasks, and sensor listeners (bridges interaction clicks to `user/` via `execute on target`).

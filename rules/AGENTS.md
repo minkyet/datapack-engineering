@@ -40,7 +40,7 @@ In `data/<namespace>/function/`, all logic resides in designated lifecycle entry
 
 1. **Lifecycle Entrypoints (Root Function Directory)**:
    - ONLY designated lifecycle entrypoints are permitted directly in `data/<namespace>/function/`:
-     - `load.mcfunction`: Runtime boot initialization (`@internal`, registered in `#minecraft:load`). Non-destructive and idempotent.
+     - `load.mcfunction`: Runtime boot initialization (`@internal`, registered in `#minecraft:load`). Non-destructive and idempotent (no gamerule modifications, entity manipulation, or score wipes).
      - `tick.mcfunction`: 20Hz clock loop dispatcher (`@internal`, registered in `#minecraft:tick`).
      - `uninstall.mcfunction`: **Mandatory Teardown Hook for ALL datapacks** (`@public`). Completely purges objectives, storages, bossbars, entities tagged `<namespace>`, and scheduled tasks (`schedule clear`).
      - `reset.mcfunction`: **Mandatory Pre-distribution Factory Reset for map-dependent packs** (`@public`, optional for standalone libraries). Composite pipeline: 1. `function <namespace>:uninstall` → 2. `function <namespace>:load` → 3. Map seeding.
@@ -64,7 +64,7 @@ In `data/<namespace>/function/`, all logic resides in designated lifecycle entry
   - Functions invoked via `schedule` or `tick` MUST enforce domain state guards (`execute unless entity @s run return fail`, phase checks) to guard against world drift during scheduling delays.
 - **Standard 3-Step Protocol for `user/` Functions**:
   All `user/` functions must structure their logic in this strict sequential order:
-  1. *Consume Input & Reset Triggers* (optional): Clear `/trigger` scores or revoke advancements first (prevents infinite loop errors on early exit).
+  1. *Consume Input & Reset Triggers* (optional): Clear and re-enable `/trigger` scores (`reset` then `enable`) or revoke advancements first (prevents infinite loop errors on early exit and ensures trigger re-usability).
   2. *Actor Qualification & Early Exit* (optional): Check caller distance, cooldown, and permission tags; exit early on mismatch.
   3. *Delegate to Domain Logic*: Delegate state mutations to `game/`, or directly invoke `visual/` for stateless UI/menu requests.
 *(Detailed architectural patterns & The Taxi Problem: [code-conventions.md](../skills/datapack-engineering/references/code-conventions.md))*

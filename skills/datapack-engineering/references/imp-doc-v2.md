@@ -17,11 +17,11 @@ Every `.mcfunction` file MUST begin with a documentation block in leading commen
 #
 # @context <execution_context>
 # @public | @internal | @private within <parent_function>
-# @handles function_tag <tag>
+# @handles function_tag <tag> | advancement <id> | enchantment <id>
 # @reads score <holder> <objective>
 # @writes score <holder> <objective>
 # @input macro <type>
-# @returns @result <description>
+# @returns @result <description> | @success <description>
 ```
 
 - **Header Opener (`#>`)**: The very first line of documentation MUST start with `#> ` followed by the function ID.
@@ -53,11 +53,12 @@ Specifies the expected entity/position execution context (`execute as ... at ...
 
 ## 4. Invocation Triggers (`@handles`)
 
-Declares event tags or advancement triggers that automatically execute this function:
+Declares event tags, advancement triggers, or enchantment effects that automatically execute this function:
 
 - `@handles function_tag minecraft:load`: Invoked by Minecraft's boot/reload tag.
 - `@handles function_tag minecraft:tick`: Invoked every game tick (20Hz).
 - `@handles advancement <id>`: Invoked as an advancement reward function.
+- `@handles enchantment <id>`: Invoked by data-driven enchantment effects (`run_function`, 1.21+).
 
 ---
 
@@ -70,6 +71,7 @@ Declare data read, written, or passed into the function. Analyzers and maintaine
 - **`@reads storage <id> <path>`** / **`@writes storage <id> <path>`**: NBT storage paths accessed.
 - **`@input macro { <key>: <type> }`**: Parameters expected when called via `function ... with ...`.
 - **`@returns @result <description>`**: Value returned by the `return run` or `return <int>` command.
+- **`@returns @success <description>`**: Execution success status returned by `return run` (success or fail).
 
 ---
 

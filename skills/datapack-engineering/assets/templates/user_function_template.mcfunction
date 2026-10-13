@@ -7,8 +7,9 @@
 # @writes score @s <namespace>.trigger.action
 
 ## Consume Input & Reset Triggers (Optional)
-# Always clear trigger scores first to prevent infinite loop errors on early exit
+# Always clear trigger scores first to prevent infinite loop errors on early exit, then re-enable for next input
 scoreboard players reset @s <namespace>.trigger.action
+scoreboard players enable @s <namespace>.trigger.action
 # advancement revoke @s only <namespace>:trigger/action
 
 ## Actor Qualification & Early Exit (Optional)
