@@ -1,6 +1,6 @@
-# Datapack Coding & Project Conventions
+# Map Datapack Coding & Project Conventions
 
-Comprehensive coding standards, 4-tier directory hierarchy, validation boundary rules, and resource naming conventions for Minecraft Java Edition datapacks.
+Comprehensive coding standards, 4-tier directory hierarchy, validation boundary rules, factory reset lifecycles, and resource naming conventions for Minecraft Java Edition map-making datapacks.
 
 ---
 
@@ -63,8 +63,8 @@ In the root function directory (`data/<namespace>/function/`), **ONLY** the desi
 |---|---|---|---|
 | `load.mcfunction` | `data/<namespace>/function/load.mcfunction` | Mandatory (All packs) | **Initialization Hook** (`@internal`, `@handles function_tag minecraft:load`). Boot environment setup for objectives and immutable constants (`##<value>`).<br>**Hot-Reload Safety Contract**: Fires on startup, joining, and any mid-game `/reload`; MUST be strictly non-destructive and idempotent. Resetting runtime/player scores (`@a`, `#state`), manipulating entities (`summon`, `kill`), altering map blocks (`fill`, `setblock`), or modifying gamerules (`gamerule`) is strictly forbidden. |
 | `tick.mcfunction` | `data/<namespace>/function/tick.mcfunction` | Mandatory (All packs) | **Tick Dispatcher** (`@internal`, `@handles function_tag minecraft:tick`). Registered in `data/minecraft/tags/function/tick.json`. Dispatches main clocks, timers, and active game loops. |
-| `uninstall.mcfunction` | `data/<namespace>/function/uninstall.mcfunction` | **Mandatory (All packs)** | **Universal Teardown Hook** (`@public`). Completely purges all created objectives, storages, bossbars, entities tagged `<namespace>`, and cancels active scheduled loops (`schedule clear`). |
-| `reset.mcfunction` | `data/<namespace>/function/reset.mcfunction` | Mandatory for Map Packs | **Pre-distribution Factory Reset Hook** (`@public`, optional for standalone). Resets the world to pristine factory state before export. Sequentially executes:<br>1. `function <namespace>:uninstall`<br>2. `function <namespace>:load`<br>3. Initial map seeding (permanent NPCs, gamemodes, spawns).<br>**MUST NEVER be called during active gameplay or tick loops.** |
+| `uninstall.mcfunction` | `data/<namespace>/function/uninstall.mcfunction` | **Mandatory (All packs)** | **Universal Teardown Hook** (`@public`). Completely purges all created objectives, storages, bossbars, entities tagged `<namespace>`, and cancels active scheduled loops (`schedule clear`) to clean up dynamic map state. |
+| `reset.mcfunction` | `data/<namespace>/function/reset.mcfunction` | Mandatory (All Map Packs) | **Pre-distribution Factory Reset Hook** (`@public`). Resets the world to pristine factory state before export. Sequentially executes:<br>1. `function <namespace>:uninstall`<br>2. `function <namespace>:load`<br>3. Initial map seeding (permanent NPCs, gamemodes, spawns, initial gamerules).<br>**MUST NEVER be called during active gameplay or tick loops.** |
 
 > **Root Cleanliness Rule**:  
 > No other `.mcfunction` file may exist directly under `data/<namespace>/function/`. Every other function must reside within a categorized subdirectory.
@@ -202,9 +202,8 @@ kill @s
 ## 4. Datapack Name & Namespace Standards
 
 - **Name Constraints**: Datapack names must match `^[a-z0-9_.-]+$`. Standardize on `snake_case`. Hyphens (`-`) and dots (`.`) should be avoided.
-- **Map Correlation**: For map-bound datapacks, derive the pack name directly from the map name.
-- **Namespace Identity**: The root namespace MUST match the datapack name exactly (`<namespace>` == datapack name).
-- **Single Custom Namespace**: A datapack must only define **one** custom namespace, plus the `minecraft` namespace for vanilla datapack overrides.
+- **Map Correlation**: Derive the pack name directly from the map name (`<namespace>` == map name).
+- **Single Custom Namespace**: A map-making datapack must only define **one** custom namespace, plus the `minecraft` namespace for vanilla datapack overrides. Never split logic across multiple custom namespaces; modularity must be achieved through the 4 functional tiers (`user/`, `game/`, `visual/`, `system/`).
 
 ---
 

@@ -1,11 +1,11 @@
 ---
 name: datapack-engineering
-description: Core verification lifecycles, 4-tier directory hierarchy, validation boundaries, composite entrypoints (load/tick/uninstall/reset), zzz private subroutines, naming rules, mcdoc verification, and IMP-Doc v2 function contracts for Minecraft Java Edition datapacks. Use this skill whenever enforcing datapack conventions, verifying NBT/components with mcdoc, analyzing project integrity with Spyglass, or writing IMP-Doc v2 function contracts and safe tick loops.
+description: Engineering standards, 4-tier directory hierarchy, validation boundaries, composite entrypoints (load/tick/uninstall/reset), zzz private subroutines, naming rules, mcdoc verification, and IMP-Doc v2 function contracts for Minecraft Java Edition map-making datapacks (escape rooms, minigames, adventure maps, RPGs). Use this skill whenever building or refactoring map datapacks, enforcing conventions, verifying NBT/components with mcdoc, analyzing project integrity with Spyglass, or writing IMP-Doc v2 function contracts and safe tick loops.
 ---
 
-# Minecraft Datapack Engineering (Verification, Contracts & Conventions)
+# Minecraft Map Datapack Engineering (Verification, Contracts & Conventions)
 
-A comprehensive engineering standard defining the core verification lifecycle, 4-tier directory structure, validation boundaries, resource naming conventions, and IMP-Doc v2 function contracts for Minecraft Java Edition datapacks.
+A comprehensive engineering standard defining the core verification lifecycle, 4-tier directory structure, validation boundaries, resource naming conventions, and IMP-Doc v2 function contracts for Minecraft Java Edition map-making datapacks.
 
 ---
 
@@ -46,8 +46,8 @@ flowchart LR
 - **Lifecycle Entry Points**: In `data/<namespace>/function/` root, **ONLY** designated lifecycle entrypoints are permitted:
   - `load.mcfunction`: Registered in `#minecraft:load` (`@internal`). Boot initialization for objectives and constants (`##<value>`). Must be strictly non-destructive and idempotent (no score wipes, entity manipulation, or gamerule changes).
   - `tick.mcfunction`: Registered in `#minecraft:tick` (`@internal`). 20Hz clock loop dispatcher.
-  - `uninstall.mcfunction`: **Mandatory Teardown Hook for ALL datapacks** (`@public`). Completely purges objectives, storages, bossbars, entities tagged `<namespace>`, and scheduled tasks (`schedule clear`).
-  - `reset.mcfunction`: **Mandatory Factory Reset Hook for Map-Dependent Packs** (`@public`, optional for standalone). Composite pipeline: 1. `function <namespace>:uninstall` → 2. `function <namespace>:load` → 3. Map seeding.
+  - `uninstall.mcfunction`: **Mandatory Teardown Hook** (`@public`). Completely purges objectives, storages, bossbars, entities tagged `<namespace>`, and scheduled tasks (`schedule clear`) to clean up dynamic map state.
+  - `reset.mcfunction`: **Mandatory Pre-distribution Factory Reset Hook** (`@public`). Restores the map to pristine initial playable state before export. Composite pipeline: 1. `function <namespace>:uninstall` → 2. `function <namespace>:load` → 3. Initial map seeding (permanent NPCs, gamemodes, spawns, initial gamerules).
   *(Note: `reset` and `uninstall` must never be called during active gameplay or tick loops).*
 - **4 Core Functional Tiers**:
   - `user/`: Controller / Gatekeeper. Player input reception (`/trigger`, interaction bridge). Mandatory `@context player`. Implements the **Standard 3-Step Protocol** (1. Input reset & re-enable, 2. Qualification, 3. Delegation).

@@ -77,6 +77,7 @@ try {
 assert(pluginJson && pluginJson.name === 'datapack-engineering', "plugin.json name is 'datapack-engineering'");
 assert(claudePlugin && claudePlugin.name === 'datapack-engineering', ".claude-plugin/plugin.json name is 'datapack-engineering'");
 assert(packageJson && packageJson.name === 'datapack-engineering', "package.json name is 'datapack-engineering'");
+assert(packageJson.keywords && packageJson.keywords.includes('map-making'), "package.json keywords include 'map-making'");
 
 const marketplacePlugin = claudeMarketplace && claudeMarketplace.plugins && claudeMarketplace.plugins[0];
 assert(marketplacePlugin && marketplacePlugin.name === 'datapack-engineering', "marketplace.json contains 'datapack-engineering'");
@@ -87,6 +88,7 @@ assert(fs.existsSync(engineeringSkillPath), 'skills/datapack-engineering/SKILL.m
 if (fs.existsSync(engineeringSkillPath)) {
   const content = fs.readFileSync(engineeringSkillPath, 'utf8');
   assert(content.includes('name: datapack-engineering'), 'datapack-engineering SKILL.md frontmatter matches');
+  assert(content.includes('map-making datapacks'), 'datapack-engineering SKILL.md specifies map-making datapacks scope');
   assert(content.includes('datapack-mcp'), 'datapack-engineering SKILL.md references companion datapack-mcp');
   assert(content.includes('Mandatory Dependency Gate'), 'datapack-engineering SKILL.md enforces Mandatory Dependency Gate');
   assert(!content.includes('Environment Fallback Protocol'), 'datapack-engineering SKILL.md has fallback protocol removed');
@@ -99,6 +101,8 @@ if (fs.existsSync(engineeringSkillPath)) {
 assert(fs.existsSync(rulesPath), 'rules/AGENTS.md exists');
 if (fs.existsSync(rulesPath)) {
   const content = fs.readFileSync(rulesPath, 'utf8');
+  assert(content.includes('map-making datapacks'), 'rules/AGENTS.md specifies map-making datapacks scope');
+  assert(content.includes('Single Map Namespace'), 'rules/AGENTS.md enforces Single Map Namespace hygiene');
   assert(content.includes('datapack-mcp'), 'rules/AGENTS.md references datapack-mcp');
   assert(content.includes('Hard Stop Policy (No Fallback)'), 'rules/AGENTS.md specifies Hard Stop Policy (No Fallback)');
   assert(!content.includes('Fallback Mode'), 'rules/AGENTS.md has Fallback Mode removed');

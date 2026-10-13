@@ -1,6 +1,6 @@
-# Minecraft Datapack Engineering Agent Guardrails
+# Minecraft Map Datapack Engineering Agent Guardrails
 
-These rules define the required engineering standards, mandatory dependency enforcement, and static verification guardrails when developing Minecraft Java Edition datapacks with the `datapack-engineering` plugin active.
+These rules define the required engineering standards, mandatory dependency enforcement, and static verification guardrails when developing Minecraft Java Edition map-making datapacks (escape rooms, minigames, adventure maps, RPGs) with the `datapack-engineering` plugin active.
 
 ---
 
@@ -35,6 +35,9 @@ Every `.mcfunction` file MUST start with an IMP-Doc v2 header (`#> <namespace>:p
 - **Context Rule for `@root`**: Bare `@s` and relative/local coordinates (`~`, `^`) are strictly prohibited in `@context @root` functions; commands requiring entity or spatial context MUST explicitly establish it via `execute` (`execute as`, `execute at`, etc.).
 *(Detailed specification: [imp-doc-v2.md](../skills/datapack-engineering/references/imp-doc-v2.md) | [code-conventions.md](../skills/datapack-engineering/references/code-conventions.md))*
 
+### Map Namespace Hygiene
+- **Single Map Namespace**: Use exactly one custom namespace derived from the map name (`<namespace>` == map name). Multiple custom namespaces are prohibited; modularity must be achieved through the 4 functional tiers.
+
 ### Directory Hierarchy & 4 Functional Tiers
 In `data/<namespace>/function/`, all logic resides in designated lifecycle entrypoints and 4 functional tiers:
 
@@ -42,8 +45,8 @@ In `data/<namespace>/function/`, all logic resides in designated lifecycle entry
    - ONLY designated lifecycle entrypoints are permitted directly in `data/<namespace>/function/`:
      - `load.mcfunction`: Runtime boot initialization (`@internal`, registered in `#minecraft:load`). Non-destructive and idempotent (no gamerule modifications, entity manipulation, or score wipes).
      - `tick.mcfunction`: 20Hz clock loop dispatcher (`@internal`, registered in `#minecraft:tick`).
-     - `uninstall.mcfunction`: **Mandatory Teardown Hook for ALL datapacks** (`@public`). Completely purges objectives, storages, bossbars, entities tagged `<namespace>`, and scheduled tasks (`schedule clear`).
-     - `reset.mcfunction`: **Mandatory Pre-distribution Factory Reset for map-dependent packs** (`@public`, optional for standalone libraries). Composite pipeline: 1. `function <namespace>:uninstall` → 2. `function <namespace>:load` → 3. Map seeding.
+     - `uninstall.mcfunction`: **Mandatory Teardown Hook** (`@public`). Completely purges objectives, storages, bossbars, entities tagged `<namespace>`, and scheduled tasks (`schedule clear`) to clean up dynamic map state.
+     - `reset.mcfunction`: **Mandatory Pre-distribution Factory Reset Hook** (`@public`). Restores the map to pristine initial playable state before export. Composite pipeline: 1. `function <namespace>:uninstall` → 2. `function <namespace>:load` → 3. Initial map seeding (permanent NPCs, gamemodes, spawns, initial gamerules).
      - `reset` and `uninstall` MUST NEVER be called during active gameplay or runtime ticks/triggers.
 2. **4 Core Functional Tiers**:
    - `user/`: Controller / Gatekeeper. Player input reception (`/trigger`, interaction bridge). Mandatory `@context player`.

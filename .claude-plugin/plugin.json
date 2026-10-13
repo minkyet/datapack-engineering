@@ -1,7 +1,7 @@
 {
   "name": "datapack-engineering",
   "version": "1.0.0",
-  "description": "Comprehensive engineering standards, IMP-Doc v2 contracts, directory conventions, and automated verification workflow for Minecraft datapacks.",
+  "description": "Comprehensive engineering standards, 4-tier architecture, factory reset lifecycles, and automated verification workflow for Minecraft map-making datapacks.",
   "author": {
     "name": "minkyet"
   },
@@ -9,6 +9,7 @@
   "keywords": [
     "minecraft",
     "datapack",
+    "map-making",
     "engineering",
     "imp-doc",
     "agent-plugin",

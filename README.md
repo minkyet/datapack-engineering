@@ -1,6 +1,6 @@
 # datapack-engineering
 
-datapack-engineering is an AI agent development plugin and engineering standards suite for Minecraft Java Edition datapacks, defining strict verification lifecycles, 4-tier directory architectures, validation boundaries, IMP-Doc v2 function contracts, and lifecycle entrypoint standards.
+datapack-engineering is an AI agent development plugin and engineering standards suite specialized for Minecraft Java Edition map-making datapacks (escape rooms, minigames, adventure maps, RPGs), defining strict verification lifecycles, 4-tier directory architectures, validation boundaries, IMP-Doc v2 function contracts, and factory reset lifecycle standards.
 
 ## Prerequisites
 
@@ -43,7 +43,7 @@ agy plugin install https://github.com/minkyet/datapack-engineering
 
 ## Usage
 
-Once installed, the plugin and its companion `datapack-mcp` tools activate automatically whenever you develop or debug Minecraft Java Edition datapacks.
+Once installed, the plugin and its companion `datapack-mcp` tools activate automatically whenever you develop or debug Minecraft Java Edition map-making datapacks.
 
 ### Workflow with AI Agents
 
@@ -62,7 +62,7 @@ When working with your AI agent (Claude Code, Antigravity CLI, or Codex), prompt
 
 | Skill | Description | Core Conventions & Features |
 | :--- | :--- | :--- |
-| `datapack-engineering` | Core verification lifecycle, 4-tier architecture, IMP-Doc v2 contracts, and directory hierarchy standards. | • **4 Functional Tiers**: `user/` (gatekeeper, `@context player`), `game/` (domain logic, `@internal`), `visual/` (render view), `system/` (infrastructure & sensors).<br>• **Validation Boundaries**: Request qualification in `user/`, domain state guards in `game/` with zero redundant input checks.<br>• **Composite Lifecycle**: Universal `uninstall.mcfunction` teardown, composite `reset.mcfunction` (`uninstall` $\rightarrow$ `load` $\rightarrow$ map seeding).<br>• **Subroutine Cleanliness**: Flat `zzz/` helper directories (no nesting; forbidden in `user/`).<br>• **Minecraft 1.21.5+ Syntax**: Unquoted JSON text components.<br>• **Static Verification**: Mandatory 4-Stage pipeline via `datapack-mcp`. |
+| `datapack-engineering` | Core verification lifecycle, 4-tier architecture, IMP-Doc v2 contracts, and directory hierarchy standards. | • **4 Functional Tiers**: `user/` (gatekeeper, `@context player`), `game/` (domain logic, `@internal`), `visual/` (render view), `system/` (infrastructure & sensors).<br>• **Validation Boundaries**: Request qualification in `user/`, domain state guards in `game/` with zero redundant input checks.<br>• **Composite Lifecycle**: Universal `uninstall.mcfunction` teardown, composite `reset.mcfunction` factory reset (`uninstall` $\rightarrow$ `load` $\rightarrow$ map seeding).<br>• **Subroutine Cleanliness**: Flat `zzz/` helper directories (no nesting; forbidden in `user/`).<br>• **Minecraft 1.21.5+ Syntax**: Unquoted JSON text components.<br>• **Static Verification**: Mandatory 4-Stage pipeline via `datapack-mcp`. |
 
 ### Dependency Architecture & Bootstrap
 

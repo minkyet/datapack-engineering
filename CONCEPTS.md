@@ -18,9 +18,9 @@ A universal teardown entrypoint that completely purges all created objectives, s
 Every datapack must provide an `uninstall` entrypoint. It must never be called during active gameplay or tick loops.
 
 ### Factory Reset (`reset`)
-A pre-distribution composite routine for map-dependent packs that restores the world to a pristine factory state prior to release.
+A mandatory pre-distribution composite routine for map-making datapacks that restores the world to a pristine factory state prior to release.
 
-`reset` executes a strict composite pipeline: teardown via `uninstall`, bootstrap via `load`, followed by initial map seeding (NPCs, spawn points, gamemodes). Like `uninstall`, it is strictly an operator command and must never be invoked during active gameplay.
+`reset` executes a strict composite pipeline: teardown via `uninstall`, bootstrap via `load`, followed by initial map seeding (permanent NPCs, spawn points, gamemodes, initial gamerules, block states). Like `uninstall`, it is strictly an operator command and must never be invoked during active gameplay.
 
 ---
 
