@@ -35,6 +35,8 @@ const impDocPath = path.join(rootDir, 'skills', 'datapack-engineering', 'referen
 const uninstallTemplatePath = path.join(rootDir, 'skills', 'datapack-engineering', 'assets', 'templates', 'entrypoints', 'uninstall.mcfunction');
 const resetTemplatePath = path.join(rootDir, 'skills', 'datapack-engineering', 'assets', 'templates', 'entrypoints', 'reset.mcfunction');
 const userTemplatePath = path.join(rootDir, 'skills', 'datapack-engineering', 'assets', 'templates', 'user_function_template.mcfunction');
+const optimizeSkillPath = path.join(rootDir, 'skills', 'datapack-optimize', 'SKILL.md');
+const optimizeReferencePath = path.join(rootDir, 'skills', 'datapack-optimize', 'references', 'predicate-and-advancement-patterns.md');
 
 let pluginJson, claudePlugin, claudeMarketplace, packageJson, hooksJson;
 
@@ -96,6 +98,17 @@ if (fs.existsSync(engineeringSkillPath)) {
   assert(!content.includes('system/util'), 'datapack-engineering SKILL.md does not mention system/util');
   assert(content.includes('uninstall.mcfunction'), 'datapack-engineering SKILL.md specifies uninstall.mcfunction as universal teardown');
 }
+
+assert(fs.existsSync(optimizeSkillPath), 'skills/datapack-optimize/SKILL.md exists');
+if (fs.existsSync(optimizeSkillPath)) {
+  const content = fs.readFileSync(optimizeSkillPath, 'utf8');
+  assert(content.includes('name: datapack-optimize'), 'datapack-optimize SKILL.md frontmatter matches');
+  assert(content.includes('Chunk Limiting') || content.includes('chunkLimited'), 'datapack-optimize SKILL.md covers chunk limiting');
+  assert(content.includes('Dimension Limiting') || content.includes('x=0'), 'datapack-optimize SKILL.md covers dimension limiting');
+  assert(content.includes('Eliminating NBT Selectors'), 'datapack-optimize SKILL.md covers NBT selector elimination');
+  assert(content.includes('Tick & Loop Optimization'), 'datapack-optimize SKILL.md covers tick optimization');
+}
+assert(fs.existsSync(optimizeReferencePath), 'skills/datapack-optimize/references/predicate-and-advancement-patterns.md exists');
 
 // 4. Universal Agent Rules (4 Tiers, Validation Boundaries, Composite Lifecycle, Root Context Rule)
 assert(fs.existsSync(rulesPath), 'rules/AGENTS.md exists');

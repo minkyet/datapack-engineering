@@ -1,6 +1,6 @@
 node_modules/
-skills/skill-creator/
 *.log
 .DS_Store
 scratch/
 docs/*
+.agents/

@@ -247,6 +247,7 @@ Structure custom item data under a namespaced compound:
 - **Always Specify `type=`**: Unscoped `@e[...]` selectors scan every entity loaded across all ticking dimensions. Always supply `type=<entity_type>` first (e.g. `@e[type=interaction, tag=<namespace>.npc]`) to let Minecraft prune the candidate search via the entity type index.
 - **Tag Narrowing**: Follow `type=` with specific namespaced tags (`tag=<namespace>.<role>`).
 - **Avoid Heavy NBT Filtering in Selectors**: Never use `nbt={...}` inside entity selectors (e.g. `@e[nbt={...}]`), as it parses and serializes full entity memory every tick. Use scoreboards or entity tags as fast filter indices instead.
+*(For comprehensive selector pruning, chunk/dimension bounds, and tick optimization patterns, see [datapack-optimize SKILL.md](../../datapack-optimize/SKILL.md)).*
 
 ---
 

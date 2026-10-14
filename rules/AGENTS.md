@@ -79,6 +79,11 @@ In `data/<namespace>/function/`, all logic resides in designated lifecycle entry
 ### Minecraft 1.21.5+ Text Component Formatting
 - **Modern Syntax Mandate**: In Minecraft 1.21.5+, wrapping JSON text components in string quotes (e.g. `'{"text":"hello"}'`) outputs the raw JSON literal string in chat. Always supply unquoted JSON objects (e.g. `tellraw @a {"text":"hello"}`) or raw string literals (`tellraw @a "hello"`).
 
+### Performance Guardrails (Zero-Tolerance Anti-Patterns)
+- **No NBT in Selectors**: `nbt={...}` is strictly forbidden in entity selectors (`@e[...]`). Use `if items` or predicates instead.
+- **Tick Discipline & Guard Clauses**: Minimize `#minecraft:tick` registration; prioritize `schedule` or advancement triggers. Use early-exit guard clauses (`return fail`) at function start.
+*(Detailed optimization patterns & Bad/Good examples: [datapack-optimize SKILL.md](../skills/datapack-optimize/SKILL.md))*
+
 ---
 
 ## 3. Mandatory 4-Stage Verification Pipeline
