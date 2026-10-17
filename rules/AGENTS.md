@@ -100,3 +100,17 @@ Because Minecraft commands lack compile-time checks, every implementation or mod
 4. **Stage 4 (Project Integrity & Convention Gate)**:
    - Run `spyglass_analyze_project` and `npm run lint` (`node scripts/lint-datapack.js`) across the entire datapack before declaring tasks complete. Ensure zero broken function references, missing tags, unresolvable symbols, or convention errors.
 
+### Verification & Linter Execution Scopes
+To prevent context churn and broken intermediate states during development, apply the verification tools according to the scope of work:
+
+- **Single-File Scope (단일/독립 파일 작업)**:
+  - *When*: 1~2 isolated files, bug fixes, or standalone helper/visual function edits.
+  - *Action*: Run immediately on the edited file (`spyglass_diagnose_file <file>` → `node scripts/lint-datapack.js --fix <file>`).
+- **Work Unit Scope (대규모/다중 파일 기능 개발)**:
+  - *When*: Multi-file features or pipelines (`user/` → `game/` → `zzz/` → `visual/`) where files reference each other during scaffolding.
+  - *Action*: Implement the coherent logical chain first, then run `spyglass_diagnose_file` on the created files followed by a directory-level batch autofix (`node scripts/lint-datapack.js --fix data/<namespace>/function/<tier>/<subsystem>/`).
+- **Project Gate (최종 커밋 전 전수 검증)**:
+  - *When*: Before completing the task, committing to git, or opening a PR.
+  - *Action*: Run whole-project verification (`spyglass_analyze_project` and `npm run lint`) requiring 0 errors.
+
+

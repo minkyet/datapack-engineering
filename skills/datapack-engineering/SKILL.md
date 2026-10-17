@@ -36,6 +36,11 @@ flowchart LR
 ### Stage 4: Project-Wide Integrity & Convention Analysis
 - Before finishing any multi-file task, refactoring, or feature, run whole-project static analysis (`spyglass_analyze_project`) and convention linting (`npm run lint` / `node scripts/lint-datapack.js`).
 - Ensure all function paths (`function <namespace>:...`), function tags (`#minecraft:tick`, `#minecraft:load`), entity tags, and convention rules pass with zero errors.
+
+### Verification & Linter Execution Scopes
+- **Single-File Scope**: For 1~2 isolated files, run `spyglass_diagnose_file` and `node scripts/lint-datapack.js --fix <file>` immediately after saving.
+- **Work Unit Scope**: For multi-file feature pipelines (`user/` → `game/` → `zzz/` → `visual/`), complete the logical calling chain first, then run `spyglass_diagnose_file` per file and batch-autofix via `node scripts/lint-datapack.js --fix data/<namespace>/function/<tier>/<subsystem>/`.
+- **Project Gate**: Before git commit or PR creation, run whole-project verification (`spyglass_analyze_project` and `npm run lint`) to guarantee 0 errors across the pack.
 *(Detailed guide: [references/verification-and-mcdoc.md](references/verification-and-mcdoc.md))*
 
 ---
