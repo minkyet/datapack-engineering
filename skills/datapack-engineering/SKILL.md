@@ -29,13 +29,13 @@ flowchart LR
 - Implement functions adhering strictly to coding conventions, IMP-Doc v2 contracts, and scheduled loop safety idioms.
 - Avoid raw shell redirections (`cat << 'EOF'`). Always use dedicated, safe file editing tools to prevent character encoding corruption and shell escaping artifacts.
 
-### Stage 3: Immediate Single-File Diagnostics
-- Immediately after creating or updating any `.mcfunction` or `.json` file, run single-file static diagnostics (`spyglass_diagnose_file`).
-- Verify mcdoc field name casing, SNBT syntax, and local selector arguments before proceeding to the next file.
+### Stage 3: Immediate Single-File Diagnostics & Convention Autofix
+- Immediately after creating or updating any `.mcfunction` or `.json` file, run single-file static diagnostics (`spyglass_diagnose_file`) to verify mcdoc field name casing, SNBT syntax, and local selector arguments.
+- Run `node scripts/lint-datapack.js --fix <file>` (or `npm run lint:fix`) to auto-format IMP-Doc v2 headers (`@reads` / `@writes` for scoreboards and storages, canonical directive order), normalize 4-space continuation indentation, and check convention rules.
 
-### Stage 4: Project-Wide Integrity Analysis
-- Before finishing any multi-file task, refactoring, or feature, run whole-project static analysis (`spyglass_analyze_project`).
-- Ensure all function paths (`function <namespace>:...`), function tags (`#minecraft:tick`, `#minecraft:load`), and entity tags resolve correctly with zero undefined symbols or dead references.
+### Stage 4: Project-Wide Integrity & Convention Analysis
+- Before finishing any multi-file task, refactoring, or feature, run whole-project static analysis (`spyglass_analyze_project`) and convention linting (`npm run lint` / `node scripts/lint-datapack.js`).
+- Ensure all function paths (`function <namespace>:...`), function tags (`#minecraft:tick`, `#minecraft:load`), entity tags, and convention rules pass with zero errors.
 *(Detailed guide: [references/verification-and-mcdoc.md](references/verification-and-mcdoc.md))*
 
 ---

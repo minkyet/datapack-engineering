@@ -4,7 +4,9 @@
   "description": "Comprehensive engineering standards, 4-tier architecture, factory reset lifecycles, and automated verification workflow for Minecraft map-making datapacks.",
   "main": "scripts/ensure-datapack-mcp.js",
   "scripts": {
-    "test": "node tests/test-bootstrap.js"
+    "test": "node tests/test-bootstrap.js && node tests/test-linter.js",
+    "lint": "node scripts/lint-datapack.js",
+    "lint:fix": "node scripts/lint-datapack.js --fix"
   },
   "keywords": [
     "minecraft",

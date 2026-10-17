@@ -88,13 +88,15 @@ In `data/<namespace>/function/`, all logic resides in designated lifecycle entry
 
 ## 3. Mandatory 4-Stage Verification Pipeline
 
-Because Minecraft commands lack compile-time checks, every implementation or modification MUST execute all 4 stages of the verification pipeline using `datapack-mcp`:
+Because Minecraft commands lack compile-time checks, every implementation or modification MUST execute all 4 stages of the verification pipeline using `datapack-mcp` and the built-in convention linter (`scripts/lint-datapack.js`):
 
 1. **Stage 1 (Pre-Implementation Check)**:
    - Query authoritative entity/component schemas via `spyglass_get_mcdoc_symbol` and Brigadier syntax via `get_command_usage`.
 2. **Stage 2 (Clean Implementation)**:
    - Implement functions strictly adhering to IMP-Doc v2 contracts, 4-tier architecture, `zzz/` isolation, and 4-space continuation line indentation.
-3. **Stage 3 (Single-File Diagnostics)**:
-   - Run `spyglass_diagnose_file` immediately on every created or modified `.mcfunction` and `.json` file. Fix all reported mcdoc field name casing errors and SNBT syntax issues.
-4. **Stage 4 (Project Integrity Gate)**:
-   - Run `spyglass_analyze_project` across the entire datapack before declaring tasks complete. Ensure zero broken function references, missing tags, or unresolvable symbols.
+3. **Stage 3 (Single-File Diagnostics & Convention Autofix)**:
+   - Run `spyglass_diagnose_file` immediately on every created or modified `.mcfunction` and `.json` file to fix mcdoc field name casing errors and SNBT syntax issues.
+   - Run `node scripts/lint-datapack.js --fix <file>` (or `npm run lint:fix`) to automatically synchronize IMP-Doc v2 headers (`@reads` / `@writes` for scoreboards and storages, canonical directive ordering) and enforce all 7 convention rules.
+4. **Stage 4 (Project Integrity & Convention Gate)**:
+   - Run `spyglass_analyze_project` and `npm run lint` (`node scripts/lint-datapack.js`) across the entire datapack before declaring tasks complete. Ensure zero broken function references, missing tags, unresolvable symbols, or convention errors.
+
