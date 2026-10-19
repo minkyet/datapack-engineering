@@ -49,6 +49,7 @@ function check({ parsed }) {
 
   if (isRootContext) {
     for (const cmd of commands) {
+      if (cmd.isMacro) continue;
       const tokens = cmd.tokens;
       if (tokens.length === 0) continue;
 

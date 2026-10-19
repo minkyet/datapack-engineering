@@ -604,6 +604,103 @@ console.log('\n--- U8: Fixture Integration Suite (valid & invalid datapacks) ---
   assert(badSiblingWithin.errors.length === 1, 'Rule 3 rejects @private within matching sibling prefix arena:game/combat_other');
 }
 
+console.log('\n--- U9: Minecraft 1.20.2+ Macro Command Support & Bypass ---');
+{
+  // 1. Parser tokenization and isMacro flag
+  const macroParsed = parseFunction(
+    '$scoreboard players get $(price_holder) arena.const\n$data get storage $(storage_id) path',
+    '/workspace/data/arena/function/game/macro_test.mcfunction'
+  );
+  assert(macroParsed.commands.length === 2, 'parseFunction extracts 2 macro commands');
+  assert(macroParsed.commands[0].isMacro === true, 'parseFunction sets isMacro: true on $ command');
+  assert(macroParsed.commands[0].tokens[0] === 'scoreboard', 'parseFunction normalizes command token to scoreboard');
+  assertDeepEqual(
+    macroParsed.extracted.reads,
+    ['score $(price_holder) arena.const', 'storage $(storage_id) path'],
+    'parseFunction extracts dynamic score and storage reads from macro lines'
+  );
+
+  // 2. Rule 5 and Rule 4 bypass for macro variables $(...)
+  const macroSample = [
+    '#> arena:game/shop/buy',
+    '# 매크로 기반 상점 구매 처리',
+    '#',
+    '# @context player',
+    '# @internal',
+    '# @input macro {price_holder: string, callback: string}',
+    '# @reads',
+    '#   score $(price_holder) arena.const',
+    '#   storage $(storage_id) path',
+    '# @writes score #target_id arena.id',
+    '',
+    '$scoreboard players get $(price_holder) arena.const',
+    '$scoreboard players set #target_id arena.id $(index)',
+    '$data get storage $(storage_id) path',
+    '$tag @s add $(role_tag)',
+    '$bossbar set $(bar_id) value 10',
+    '$function $(callback)',
+    '$function $(ns):game/sub'
+  ].join('\n');
+
+  const macroRes = lintContent(macroSample, '/workspace/data/arena/function/game/shop/buy.mcfunction');
+  assert(
+    macroRes.errors.length === 0 && macroRes.warnings.length === 0,
+    'Rule 5, Rule 4, and Rule 1 pass macro commands without false positive errors or warnings'
+  );
+
+  // 3. Rule 6 @context @root bypass for macro commands
+  const rootMacroSample = [
+    '#> arena:load',
+    '# 루트 매크로 초기화',
+    '#',
+    '# @context @root',
+    '# @internal',
+    '# @handles function_tag minecraft:load',
+    '',
+    '$execute as $(target) run tp @s ~ ~ ~'
+  ].join('\n');
+  const rootMacroRes = lintContent(rootMacroSample, '/workspace/data/arena/function/load.mcfunction', { rules: [rule6Selectors] });
+  assert(rootMacroRes.errors.length === 0, 'Rule 6 skips dynamic context checks on macro commands in @context @root');
+
+  // 4. Autofix (--fix) preserves @input macro and syncs dynamic @reads / @writes
+  const unformattedMacro = [
+    '#> arena:game/shop/buy',
+    '# 매크로 기반 상점',
+    '#',
+    '# @input macro {price_holder: string}',
+    '# @internal',
+    '# @context player',
+    '',
+    '$scoreboard players get $(price_holder) arena.const',
+    '$scoreboard players set #target_id arena.id $(index)'
+  ].join('\n');
+
+  const fixRes = lintContent(unformattedMacro, '/workspace/data/arena/function/game/shop/buy.mcfunction', { fix: true });
+  assert(fixRes.fixed === true, 'Autofix updates header for macro function');
+  assert(fixRes.errors.length === 0, 'Autofix leaves 0 errors for macro function');
+  assert(fixRes.content.includes('# @input macro {price_holder: string}'), 'Autofix preserves @input macro directive');
+  assert(fixRes.content.includes('# @reads score $(price_holder) arena.const'), 'Autofix generates dynamic @reads score $(price_holder) arena.const');
+  assert(fixRes.content.includes('# @writes score #target_id arena.id'), 'Autofix generates @writes score #target_id arena.id from value-macro command');
+
+  // 5. Mixed: real naming errors in non-macro tokens are still detected
+  const mixedSample = [
+    '#> arena:game/mixed',
+    '# 혼합 검사',
+    '#',
+    '# @context player',
+    '# @internal',
+    '',
+    '$scoreboard players get $(price_holder) arena.const',
+    'scoreboard players set #myCamelCase arena.temp 1',
+    'scoreboard players set bad_player arena.temp 1',
+    'function foreign_ns:sub'
+  ].join('\n');
+  const mixedRes = lintContent(mixedSample, '/workspace/data/arena/function/game/mixed.mcfunction');
+  assert(mixedRes.errors.some(e => e.message.includes('#myCamelCase')), 'Rule 5 still catches camelCase in mixed file');
+  assert(mixedRes.errors.some(e => e.message.includes('bad_player')), 'Rule 5 still catches missing # prefix in mixed file');
+  assert(mixedRes.errors.some(e => e.message.includes('foreign_ns')), 'Rule 4 still catches foreign namespace in mixed file');
+}
+
 console.log(`\nResults: ${testsPassed} passed, ${testsFailed} failed`);
 if (testsFailed > 0) {
   process.exit(1);

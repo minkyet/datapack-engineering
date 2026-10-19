@@ -3,6 +3,8 @@
  * Covers: R18, R19
  */
 
+const { hasMacroVariable } = require('../parser');
+
 module.exports = {
   id: 'rule-4-namespace',
   category: 'namespace',
@@ -58,6 +60,8 @@ module.exports = {
 
     // R19: Check function calls for foreign namespaces
     for (const call of extracted.functionCalls) {
+      if (hasMacroVariable(call.id)) continue;
+
       const cleanId = call.id.startsWith('#') ? call.id.slice(1) : call.id;
       const colonIdx = cleanId.indexOf(':');
       if (colonIdx !== -1) {

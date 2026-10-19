@@ -3,6 +3,8 @@
  * Covers: R20, R21, R22, R23
  */
 
+const { hasMacroVariable } = require('../parser');
+
 function isValidDotSnakeCase(str) {
   if (!str) return false;
   return /^[a-z0-9_]+(\.[a-z0-9_]+)*$/.test(str);
@@ -38,7 +40,7 @@ module.exports = {
     ];
 
     for (const { objective, line } of allObjectives) {
-      if (!objective || checkedObjectives.has(`${objective}:${line}`)) continue;
+      if (!objective || hasMacroVariable(objective) || checkedObjectives.has(`${objective}:${line}`)) continue;
       checkedObjectives.add(`${objective}:${line}`);
 
       const isRootObj = objective === ns;
@@ -60,7 +62,7 @@ module.exports = {
     // R21: Scoreboard Fake Players Naming & Objective-Based Prefixes
     for (const ref of extracted.scoreRefs) {
       const { holder, objective, line } = ref;
-      if (!holder || holder.startsWith('@') || holder === '*') {
+      if (!holder || holder.startsWith('@') || holder === '*' || hasMacroVariable(holder) || hasMacroVariable(objective)) {
         continue;
       }
 
@@ -172,6 +174,8 @@ module.exports = {
     }
 
     for (const { tag, line } of tagOccurrences) {
+      if (hasMacroVariable(tag)) continue;
+
       const isValidTag =
         tag === ns ||
         (tag.startsWith(`${ns}.`) && isValidDotSnakeCase(tag.slice(ns.length + 1)));
@@ -194,6 +198,8 @@ module.exports = {
       if (checkedStorages.has(key)) continue;
       checkedStorages.add(key);
 
+      if (hasMacroVariable(st.id)) continue;
+
       if (!st.id.startsWith(`${ns}:`) || st.id.length <= ns.length + 1) {
         diagnostics.push({
           ruleId: 'rule-5-naming',
@@ -211,6 +217,8 @@ module.exports = {
       const key = `${bb.id}:${bb.line}`;
       if (checkedBossbars.has(key)) continue;
       checkedBossbars.add(key);
+
+      if (hasMacroVariable(bb.id)) continue;
 
       if (!bb.id.startsWith(`${ns}:`) || bb.id.length <= ns.length + 1) {
         diagnostics.push({

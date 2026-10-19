@@ -386,6 +386,14 @@ function parseCommands(rawLines, headerEndLineIndex) {
 
   let currentCmd = null;
 
+  function finalizeCommand(cmd) {
+    const text = cmd.parts.join(' ');
+    cmd.text = text;
+    const normalizedText = cmd.isMacro && text.startsWith('$') ? text.slice(1).trimStart() : text;
+    cmd.tokens = tokenizeCommand(normalizedText);
+    return cmd;
+  }
+
   for (let i = Math.max(0, headerEndLineIndex + 1); i < rawLines.length; i++) {
     const raw = rawLines[i];
     const trimmed = raw.trim();
@@ -398,20 +406,19 @@ function parseCommands(rawLines, headerEndLineIndex) {
 
       const hasBackslash = /\\\s*$/.test(raw);
       const cleanPart = hasBackslash ? raw.replace(/\\\s*$/, '').trim() : trimmed;
+      const isMacro = cleanPart.startsWith('$');
 
       currentCmd = {
         startLine: lineNumber,
         endLine: lineNumber,
         rawLines: [raw],
         lineNumbers: [lineNumber],
+        isMacro,
         parts: [cleanPart]
       };
 
       if (!hasBackslash) {
-        const text = currentCmd.parts.join(' ');
-        currentCmd.text = text;
-        currentCmd.tokens = tokenizeCommand(text);
-        commands.push(currentCmd);
+        commands.push(finalizeCommand(currentCmd));
         currentCmd = null;
       }
     } else {
@@ -436,20 +443,14 @@ function parseCommands(rawLines, headerEndLineIndex) {
       }
 
       if (!hasBackslash) {
-        const text = currentCmd.parts.join(' ');
-        currentCmd.text = text;
-        currentCmd.tokens = tokenizeCommand(text);
-        commands.push(currentCmd);
+        commands.push(finalizeCommand(currentCmd));
         currentCmd = null;
       }
     }
   }
 
   if (currentCmd) {
-    const text = currentCmd.parts.join(' ');
-    currentCmd.text = text;
-    currentCmd.tokens = tokenizeCommand(text);
-    commands.push(currentCmd);
+    commands.push(finalizeCommand(currentCmd));
   }
 
   return {
@@ -831,6 +832,17 @@ function parseFunction(content, filePath = '') {
   };
 }
 
+/**
+ * Checks whether an identifier or argument contains a Minecraft 1.20.2+ macro template variable $(...).
+ * Note: $foo (UI display prefix) does not match; only $(foo) matches.
+ *
+ * @param {string} str
+ * @returns {boolean}
+ */
+function hasMacroVariable(str) {
+  return typeof str === 'string' && /\$\([^)]+\)/.test(str);
+}
+
 module.exports = {
   CANONICAL_DIRECTIVE_ORDER,
   DIRECTIVE_RANK,
@@ -840,5 +852,6 @@ module.exports = {
   parseCommands,
   extractDataContracts,
   formatHeader,
-  parseFunction
+  parseFunction,
+  hasMacroVariable
 };
